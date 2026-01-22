@@ -34,25 +34,23 @@ Current version only support ChatGPT parsing.
 
 **From ChatGPT:**
 1. Go to [chatgpt.com](https://chatgpt.com)
-2. Click on your profile (top-right)
-3. Go to **Settings** → **Personalization** → **Export data**
+2. Click on your profile (botton-left)
+3. Go to **Settings** → **Data Controls** → **Export data**
 4. Request export and wait for the email
-5. Download the ZIP file and extract `conversations.json`
+5. Download the ZIP file and extract `conversations.json` or `chat.html`
 
 **From Claude:**
 1. Go to [claude.com](https://claude.com)
-2. Click on your profile (top-right)
-3. Go to **Settings** → **Data Export**
-4. Request export and wait for the email
-5. Download the JSON file
+2. Click on your profile (botton-left)
+3. Go to **Settings** → **Privacy** → **Export data**
+4. Request export and wait for the email (you can choose time range of your history)
+5. Download the JSON file `conversations.json` 
 
 **From DeepSeek:**
 1. Go to [chat.deepseek.com](https://chat.deepseek.com)
-2. Click on your profile (top-right)
-3. Go to **Settings** → **Data Export** or **Export Conversations**
-4. Download the JSON file
-4. Request export and wait for the email
-5. Download the ZIP file and extract `conversations.json`
+2. Click on your profile (botton-left)
+3. Go to **Settings** → **Data** →**Export Data** 
+4. Download the ZIP file and extract `conversations.json`
 
 ### 2. Import to the Parser
 

@@ -29,18 +29,66 @@
                 <input type="text" placeholder="Search conversations..." id="globalSearchInput">
             </div>
 
-            <!-- Navigation Tabs -->
-            <div class="sidebar-tabs">
-                <button class="tab-btn active" data-tab="conversations">Conversations</button>
-                <button class="tab-btn" data-tab="starred">⭐ Starred</button>
-                <button class="tab-btn" data-tab="starredPairs">💎 Starred Pairs</button>
+            <!-- Sort and Filter Controls -->
+            <div class="sidebar-controls">
+                <select id="sortSelect" class="sort-select">
+                    <option value="newestCreated">Newest (Created)</option>
+                    <option value="oldestCreated">Oldest (Created)</option>
+                    <option value="recentlyUpdated">Recently Updated</option>
+                    <option value="alphabetical">Alphabetical (A-Z)</option>
+                </select>
+                <button class="filter-btn" id="filterBtn" title="Filter by date">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </button>
             </div>
 
-            <!-- Conversation List -->
+            <!-- Conversation List with Folders -->
             <div class="conversation-list" id="conversationList">
-                <div class="empty-state" id="emptyState">
-                    <p>No conversations loaded</p>
-                    <small>Import your ChatGPT export to get started</small>
+                <!-- Starred Conversations Folder -->
+                <div class="folder" id="starredConversationsFolder">
+                    <div class="folder-header" data-folder="starredConversations">
+                        <svg class="folder-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                        <span class="folder-title">⭐ Starred Conversations</span>
+                        <span class="folder-count">(0)</span>
+                    </div>
+                    <div class="folder-content collapsed" id="starredConversationsContent">
+                        <!-- Starred conversations will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Starred Pairs Folder -->
+                <div class="folder" id="starredPairsFolder">
+                    <div class="folder-header" data-folder="starredPairs">
+                        <svg class="folder-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                        <span class="folder-title">💎 Starred Pairs</span>
+                        <span class="folder-count">(0)</span>
+                    </div>
+                    <div class="folder-content collapsed" id="starredPairsContent">
+                        <!-- Starred pairs will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- All Conversations Folder (Always Expanded) -->
+                <div class="folder" id="allConversationsFolder">
+                    <div class="folder-header folder-header-static">
+                        <span class="folder-title">All Conversations</span>
+                        <span class="folder-count">(0)</span>
+                    </div>
+                    <div class="folder-content" id="allConversationsContent">
+                        <div class="empty-state" id="emptyState">
+                            <p>No conversations loaded</p>
+                            <small>Import your ChatGPT export to get started</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -56,17 +104,26 @@
             <div class="chat-container" id="chatContainer">
                 <!-- Upload State -->
                 <div class="upload-state" id="uploadState">
-                    <div class="upload-box">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        <h2>Import ChatGPT History</h2>
-                        <p>Upload your exported chat history in JSON or HTML format</p>
-                        <input type="file" id="fileInput" accept=".json,.html" multiple hidden>
-                        <button class="upload-btn" id="uploadBtn">Choose Files</button>
-                        <p class="upload-hint">Supports both JSON export and individual HTML files</p>
+                    <div class="landing-container">
+                        <!-- Title Section -->
+                        <div class="landing-title">
+                            <h1>LLM Conversation Parser</h1>
+                            <p class="landing-subtitle">View, organize, and manage your LLM conversation history</p>
+                        </div>
+
+                        <!-- Upload Box -->
+                        <div class="upload-box">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <h2>Import Your Conversations</h2>
+                            <p>Upload your exported chat history in JSON or HTML format</p>
+                            <input type="file" id="fileInput" accept=".json,.html" multiple hidden>
+                            <button class="upload-btn" id="uploadBtn">Choose Files</button>
+                            <p class="upload-hint">Supports both JSON export and individual HTML files</p>
+                        </div>
                     </div>
                 </div>
 

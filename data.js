@@ -4,7 +4,7 @@
 class ChatGPTData {
     constructor() {
         this.conversations = [];
-        this.currentTab = 'conversations'; // 'conversations' or 'starred'
+        this.currentSort = 'newestCreated'; // Default sort option
         this.currentConversationId = null;
         this.storageKey = 'chatgpt_parser_data';
 
@@ -58,12 +58,33 @@ class ChatGPTData {
                 pairs = this.convertMessagesToPairs(conv.conversation.messages);
             }
 
+            // Calculate actual timestamps from pairs if not provided
+            let actualCreateTime = createTime;
+            let actualUpdateTime = updateTime;
+
+            if (pairs.length > 0) {
+                // Get first message timestamp as create time
+                const firstMessage = pairs[0].question;
+                if (firstMessage && firstMessage.timestamp) {
+                    actualCreateTime = Math.min(actualCreateTime, firstMessage.timestamp);
+                }
+
+                // Get last answer timestamp as update time
+                const lastPair = pairs[pairs.length - 1];
+                if (lastPair && lastPair.answers.length > 0) {
+                    const lastAnswer = lastPair.answers[lastPair.answers.length - 1];
+                    if (lastAnswer && lastAnswer.timestamp) {
+                        actualUpdateTime = Math.max(actualUpdateTime, lastAnswer.timestamp);
+                    }
+                }
+            }
+
             return {
                 id: conv.conversation_id || conv.id || `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 title: title,
-                createTime: createTime,
-                updateTime: updateTime,
-                pairs: pairs, // Changed from messages to pairs
+                createTime: actualCreateTime,
+                updateTime: actualUpdateTime,
+                pairs: pairs,
                 starred: false
             };
         } catch (error) {
@@ -415,7 +436,7 @@ class ChatGPTData {
         const data = {
             conversations: this.conversations,
             currentConversationId: this.currentConversationId,
-            currentTab: this.currentTab
+            currentSort: this.currentSort
         };
 
         // Try IndexedDB first if available
@@ -426,7 +447,7 @@ class ChatGPTData {
 
                 // Save settings
                 await this.idbStorage.saveSetting('currentConversationId', this.currentConversationId);
-                await this.idbStorage.saveSetting('currentTab', this.currentTab);
+                await this.idbStorage.saveSetting('currentSort', this.currentSort);
 
                 console.log('Data saved to IndexedDB');
                 return;
@@ -460,7 +481,7 @@ class ChatGPTData {
 
                     // Load settings
                     this.currentConversationId = await this.idbStorage.loadSetting('currentConversationId');
-                    this.currentTab = await this.idbStorage.loadSetting('currentTab') || 'conversations';
+                    this.currentSort = await this.idbStorage.loadSetting('currentSort') || 'newestCreated';
 
                     console.log('Data loaded from IndexedDB');
                     return true;
@@ -480,7 +501,7 @@ class ChatGPTData {
                 const data = JSON.parse(stored);
                 this.conversations = data.conversations || [];
                 this.currentConversationId = data.currentConversationId;
-                this.currentTab = data.currentTab || 'conversations';
+                this.currentSort = data.currentSort || 'newestCreated';
                 console.log('Data loaded from localStorage');
                 return true;
             }
@@ -661,11 +682,35 @@ class ChatGPTData {
                 conv.pairs.forEach((p, idx) => {
                     p.index = idx + 1;
                 });
+
+                // Update timestamps after deletion
+                this.updateConversationTimestamps(conv);
+
                 await this.saveToStorage();
                 return true;
             }
         }
         return false;
+    }
+
+    // Update conversation timestamps based on current pairs
+    updateConversationTimestamps(conv) {
+        if (conv.pairs.length > 0) {
+            // Get first message timestamp as create time
+            const firstMessage = conv.pairs[0].question;
+            if (firstMessage && firstMessage.timestamp) {
+                conv.createTime = Math.min(conv.createTime, firstMessage.timestamp);
+            }
+
+            // Get last answer timestamp as update time
+            const lastPair = conv.pairs[conv.pairs.length - 1];
+            if (lastPair && lastPair.answers.length > 0) {
+                const lastAnswer = lastPair.answers[lastPair.answers.length - 1];
+                if (lastAnswer && lastAnswer.timestamp) {
+                    conv.updateTime = Math.max(conv.updateTime, lastAnswer.timestamp);
+                }
+            }
+        }
     }
 
     async toggleStarPair(conversationId, pairId) {

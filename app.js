@@ -4,8 +4,9 @@ class ChatGPTParserApp {
     constructor() {
         this.data = chatData;
         this.currentView = 'upload'; // 'upload' or 'chat'
-        this.currentTab = 'conversations'; // 'conversations' or 'starred'
         this.searchResults = [];
+        this.currentSort = 'newestCreated'; // Default sort option
+        this.highlightedPairId = null; // For starred pair highlighting
         this.init();
     }
 
@@ -34,10 +35,23 @@ class ChatGPTParserApp {
             document.getElementById('fileInput').click();
         });
 
-        // Sidebar tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.switchTab(e.target.dataset.tab);
+        // Sort control
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            this.currentSort = e.target.value;
+            this.updateConversationList();
+        });
+
+        // Filter button (placeholder for now)
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            // TODO: Implement date filter dialog
+            alert('Date filter coming soon!');
+        });
+
+        // Folder headers - collapsible folders
+        document.querySelectorAll('.folder-header[data-folder]').forEach(header => {
+            header.addEventListener('click', (e) => {
+                const folderId = header.dataset.folder;
+                this.toggleFolder(folderId);
             });
         });
 
@@ -89,6 +103,25 @@ class ChatGPTParserApp {
         });
     }
 
+    toggleFolder(folderId) {
+        const folder = document.querySelector(`.folder-header[data-folder="${folderId}"]`);
+        const content = document.getElementById(`${folderId}Content`);
+        const arrow = folder.querySelector('.folder-arrow');
+
+        if (!folder || !content || !arrow) {
+            console.error('Folder elements not found:', { folderId, folder, content, arrow });
+            return;
+        }
+
+        if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+            arrow.classList.remove('collapsed');
+        } else {
+            content.classList.add('collapsed');
+            arrow.classList.add('collapsed');
+        }
+    }
+
     async handleFileUpload(files) {
         if (!files || files.length === 0) return;
 
@@ -134,7 +167,9 @@ class ChatGPTParserApp {
 
     async loadFromStorage() {
         await this.data.loadFromStorage();
-        this.currentTab = this.data.currentTab || 'conversations';
+        // Load saved sort preference if exists
+        this.currentSort = this.data.currentSort || 'newestCreated';
+        document.getElementById('sortSelect').value = this.currentSort;
     }
 
     updateUI() {
@@ -142,25 +177,43 @@ class ChatGPTParserApp {
         this.updateMainView();
     }
 
-    updateConversationList() {
-        const listContainer = document.getElementById('conversationList');
+    sortConversations(conversations) {
+        const sorted = [...conversations];
 
-        let conversations = [];
-        let isStarredPairsTab = false;
-
-        if (this.currentTab === 'conversations') {
-            conversations = this.data.conversations;
-        } else if (this.currentTab === 'starred') {
-            conversations = this.data.getStarredConversations();
-        } else if (this.currentTab === 'starredPairs') {
-            isStarredPairsTab = true;
+        switch (this.currentSort) {
+            case 'newestCreated':
+                sorted.sort((a, b) => b.createTime - a.createTime);
+                break;
+            case 'oldestCreated':
+                sorted.sort((a, b) => a.createTime - b.createTime);
+                break;
+            case 'recentlyUpdated':
+                sorted.sort((a, b) => b.updateTime - a.updateTime);
+                break;
+            case 'alphabetical':
+                sorted.sort((a, b) => a.title.localeCompare(b.title));
+                break;
         }
 
-        // Apply search filter if active (only within the current tab)
+        return sorted;
+    }
+
+    updateConversationList() {
+        // Get all conversations
+        let allConversations = this.data.conversations;
+
+        // Get starred conversations
+        const starredConversations = allConversations.filter(conv => conv.starred);
+
+        // Get starred pairs
+        const allStarredPairs = this.data.getStarredPairs();
+
+        // Apply search filter if active
         const searchQuery = document.getElementById('globalSearchInput').value.trim();
-        if (searchQuery && !isStarredPairsTab) {
+
+        if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
-            conversations = conversations.filter(conv => {
+            allConversations = allConversations.filter(conv => {
                 // Search in title
                 if (conv.title.toLowerCase().includes(lowerQuery)) {
                     return true;
@@ -173,80 +226,186 @@ class ChatGPTParserApp {
             });
         }
 
-        // Clear the list
-        listContainer.innerHTML = '';
+        // Sort conversations
+        const sortedAll = this.sortConversations(allConversations);
+        const sortedStarred = this.sortConversations(starredConversations);
 
-        // Handle starred pairs tab differently
-        if (isStarredPairsTab) {
-            this.renderStarredPairs(listContainer, searchQuery);
-            return;
-        }
+        // Update folder counts
+        document.querySelector('#allConversationsFolder .folder-count').textContent = `(${sortedAll.length})`;
+        document.querySelector('#starredConversationsFolder .folder-count').textContent = `(${sortedStarred.length})`;
+        document.querySelector('#starredPairsFolder .folder-count').textContent = `(${allStarredPairs.length})`;
+
+        // Render All Conversations folder
+        this.renderConversationFolder(
+            document.getElementById('allConversationsContent'),
+            sortedAll,
+            searchQuery
+        );
+
+        // Render Starred Conversations folder
+        this.renderConversationFolder(
+            document.getElementById('starredConversationsContent'),
+            sortedStarred,
+            searchQuery
+        );
+
+        // Render Starred Pairs folder
+        this.renderStarredPairsFolder(
+            document.getElementById('starredPairsContent'),
+            allStarredPairs,
+            searchQuery
+        );
+    }
+
+    renderConversationFolder(container, conversations, searchQuery) {
+        container.innerHTML = '';
 
         if (conversations.length === 0) {
-            // Create and show empty state
             const emptyState = document.createElement('div');
             emptyState.className = 'empty-state';
 
-            if (this.currentTab === 'starred') {
-                emptyState.innerHTML = `
-                    <p>No starred conversations</p>
-                    <small>Star conversations to see them here</small>
-                `;
-            } else if (searchQuery) {
+            if (searchQuery) {
                 emptyState.innerHTML = `
                     <p>No results found</p>
                     <small>Try a different search term</small>
                 `;
             } else {
                 emptyState.innerHTML = `
-                    <p>No conversations loaded</p>
+                    <p>No conversations</p>
                     <small>Import your ChatGPT export to get started</small>
                 `;
             }
 
-            listContainer.appendChild(emptyState);
+            container.appendChild(emptyState);
             return;
         }
 
         // Render conversation items
         conversations.forEach(conv => {
-            const item = document.createElement('div');
-            item.className = 'conversation-item';
-            item.dataset.id = conv.id;
+            const item = this.createConversationItem(conv);
+            container.appendChild(item);
+        });
+    }
 
-            if (this.data.currentConversationId === conv.id) {
-                item.classList.add('active');
+    createConversationItem(conv) {
+        const item = document.createElement('div');
+        item.className = 'conversation-item';
+        item.dataset.id = conv.id;
+
+        if (this.data.currentConversationId === conv.id) {
+            item.classList.add('active');
+        }
+
+        const date = new Date(conv.updateTime * 1000);
+        const dateStr = this.formatDate(date);
+
+        item.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <div class="conversation-item-title" title="${this.escapeHtml(conv.title)}">
+                ${this.escapeHtml(conv.title)}
+            </div>
+            <span class="star-icon ${conv.starred ? 'starred' : ''}" data-id="${conv.id}">
+                ${conv.starred ? '⭐' : '☆'}
+            </span>
+        `;
+
+        item.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('star-icon')) {
+                this.selectConversation(conv.id);
+            }
+        });
+
+        const starIcon = item.querySelector('.star-icon');
+        starIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleStarConversation(conv.id);
+        });
+
+        return item;
+    }
+
+    renderStarredPairsFolder(container, starredPairs, searchQuery) {
+        container.innerHTML = '';
+
+        // Apply search filter if active
+        let filteredPairs = starredPairs;
+        if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            filteredPairs = starredPairs.filter(pair =>
+                pair.question.content.toLowerCase().includes(lowerQuery) ||
+                pair.answers.some(ans => ans.content.toLowerCase().includes(lowerQuery))
+            );
+        }
+
+        if (filteredPairs.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+
+            if (searchQuery) {
+                emptyState.innerHTML = `
+                    <p>No starred pairs match your search</p>
+                    <small>Try a different search term</small>
+                `;
+            } else {
+                emptyState.innerHTML = `
+                    <p>No starred pairs yet</p>
+                    <small>Star pairs to see them here</small>
+                `;
             }
 
-            const date = new Date(conv.updateTime * 1000);
-            const dateStr = this.formatDate(date);
+            container.appendChild(emptyState);
+            return;
+        }
 
-            item.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <div class="conversation-item-title" title="${this.escapeHtml(conv.title)}">
-                    ${this.escapeHtml(conv.title)}
-                </div>
-                <span class="star-icon ${conv.starred ? 'starred' : ''}" data-id="${conv.id}">
-                    ${conv.starred ? '⭐' : '☆'}
-                </span>
-            `;
-
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('star-icon')) {
-                    this.selectConversation(conv.id);
-                }
-            });
-
-            const starIcon = item.querySelector('.star-icon');
-            starIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleStarConversation(conv.id);
-            });
-
-            listContainer.appendChild(item);
+        // Render starred pair items
+        filteredPairs.forEach((pair) => {
+            const item = this.createStarredPairItem(pair);
+            container.appendChild(item);
         });
+    }
+
+    createStarredPairItem(pair) {
+        const item = document.createElement('div');
+        item.className = 'conversation-item';
+        item.dataset.pairId = pair.id;
+        item.dataset.conversationId = pair.conversationId;
+
+        // Get preview text from question
+        const previewText = pair.question.content.substring(0, 50);
+        const truncatedText = previewText.length < pair.question.content.length
+            ? previewText + '...'
+            : previewText;
+
+        item.innerHTML = `
+            <span class="star-icon starred">💎</span>
+            <div class="conversation-item-title" title="${this.escapeHtml(pair.question.content)}">
+                ${this.escapeHtml(truncatedText)}
+            </div>
+            <small style="color: var(--text-muted);">from "${this.escapeHtml(pair.conversationTitle)}"</small>
+        `;
+
+        item.addEventListener('click', () => {
+            this.selectConversationWithHighlightedPair(pair.conversationId, pair.id);
+        });
+
+        return item;
+    }
+
+    selectConversationWithHighlightedPair(conversationId, pairId) {
+        console.log('Selecting conversation with highlighted pair:', { conversationId, pairId });
+        this.data.currentConversationId = conversationId;
+        this.highlightedPairId = pairId;
+        this.updateUI();
+
+        // Clear thread search
+        document.getElementById('threadSearchInput').value = '';
+
+        // Close sidebar on mobile
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.remove('open');
+        }
     }
 
     updateMainView() {
@@ -269,6 +428,27 @@ class ChatGPTParserApp {
             console.log('Displaying conversation:', conv.title, 'with', conv.pairs.length, 'pairs');
             document.getElementById('threadTitleInput').value = conv.title;
             this.renderPairs(conv.pairs);
+
+            // Scroll to highlighted pair if set
+            if (this.highlightedPairId) {
+                // Use a longer timeout and multiple attempts to find the element
+                const scrollToPair = (attempt = 0) => {
+                    const highlightedPair = document.querySelector(`.pair-container[data-pair-id="${this.highlightedPairId}"]`);
+                    if (highlightedPair) {
+                        console.log('Found highlighted pair, scrolling to it:', this.highlightedPairId);
+                        highlightedPair.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        this.highlightedPairId = null; // Clear after scrolling
+                    } else if (attempt < 10) {
+                        // Try again with a longer delay
+                        console.log('Pair not found yet, attempt', attempt + 1);
+                        setTimeout(() => scrollToPair(attempt + 1), 100);
+                    } else {
+                        console.error('Could not find highlighted pair after 10 attempts:', this.highlightedPairId);
+                        this.highlightedPairId = null;
+                    }
+                };
+                setTimeout(() => scrollToPair(), 200);
+            }
         } else {
             console.error('Conversation not found:', this.data.currentConversationId);
             console.log('Available conversations:', this.data.conversations.map(c => c.id));
@@ -308,6 +488,11 @@ class ChatGPTParserApp {
         const container = document.createElement('div');
         container.className = 'pair-container';
         container.dataset.pairId = pair.id;
+
+        // Add highlight class if this is the highlighted starred pair
+        if (this.highlightedPairId === pair.id) {
+            container.classList.add('highlighted-starred');
+        }
 
         // Create question element (user message with index)
         const questionEl = this.createQuestionElement(pair.question, pair.index);
@@ -401,113 +586,6 @@ class ChatGPTParserApp {
         if (window.innerWidth <= 768) {
             document.getElementById('sidebar').classList.remove('open');
         }
-    }
-
-    switchTab(tab) {
-        this.currentTab = tab;
-        this.data.currentTab = tab;
-
-        // Update tab buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tab);
-        });
-
-        this.updateConversationList();
-    }
-
-    renderStarredPairs(container, searchQuery) {
-        // Get all starred pairs across all conversations
-        let starredPairs = this.data.getStarredPairs();
-
-        // Apply search filter if active
-        if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
-            starredPairs = starredPairs.filter(pair =>
-                pair.question.content.toLowerCase().includes(lowerQuery) ||
-                pair.answers.some(ans => ans.content.toLowerCase().includes(lowerQuery))
-            );
-        }
-
-        if (starredPairs.length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-
-            if (searchQuery) {
-                emptyState.innerHTML = `
-                    <p>No starred pairs match your search</p>
-                    <small>Try a different search term</small>
-                `;
-            } else {
-                emptyState.innerHTML = `
-                    <p>No starred pairs yet</p>
-                    <small>Star pairs to see them here</small>
-                `;
-            }
-
-            container.appendChild(emptyState);
-            return;
-        }
-
-        // Group pairs by conversation
-        const groupedByConversation = {};
-        starredPairs.forEach(pair => {
-            const convId = pair.conversationId;
-            if (!groupedByConversation[convId]) {
-                groupedByConversation[convId] = {
-                    title: pair.conversationTitle,
-                    pairs: []
-                };
-            }
-            groupedByConversation[convId].pairs.push(pair);
-        });
-
-        // Render grouped pairs
-        Object.entries(groupedByConversation).forEach(([convId, group]) => {
-            // Create conversation group header
-            const groupHeader = document.createElement('div');
-            groupHeader.className = 'starred-pairs-group-header';
-            groupHeader.innerHTML = `
-                <div class="group-title">${this.escapeHtml(group.title)}</div>
-            `;
-            container.appendChild(groupHeader);
-
-            // Render pairs in this group
-            group.pairs.forEach(pair => {
-                const item = document.createElement('div');
-                item.className = 'starred-pair-item';
-
-                // Get first few words of question
-                const questionPreview = pair.question.content.substring(0, 60) + (pair.question.content.length > 60 ? '...' : '');
-
-                item.innerHTML = `
-                    <div class="pair-index">${pair.index}</div>
-                    <div class="pair-question">${this.escapeHtml(questionPreview)}</div>
-                    <div class="pair-actions">
-                        <button class="pair-action-btn view" data-conv-id="${pair.conversationId}" data-pair-id="${pair.id}">
-                            View
-                        </button>
-                        <button class="pair-action-btn unstar ${pair.starred ? 'starred' : ''}" data-conv-id="${pair.conversationId}" data-pair-id="${pair.id}">
-                            ${pair.starred ? '⭐' : '☆'}
-                        </button>
-                    </div>
-                `;
-
-                // Add click handlers
-                const viewBtn = item.querySelector('.view');
-                viewBtn.addEventListener('click', () => {
-                    this.selectConversation(pair.conversationId);
-                });
-
-                const unstarBtn = item.querySelector('.unstar');
-                unstarBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    await this.data.toggleStarPair(pair.conversationId, pair.id);
-                    this.updateConversationList();
-                });
-
-                container.appendChild(item);
-            });
-        });
     }
 
     handleGlobalSearch(query) {

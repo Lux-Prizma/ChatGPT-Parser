@@ -48,6 +48,13 @@
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
                 </button>
+                <button class="new-folder-btn" id="newFolderBtn" title="New Folder">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
             </div>
 
             <!-- Conversation List with Folders -->
@@ -78,6 +85,11 @@
                     <div class="folder-content collapsed" id="starredPairsContent">
                         <!-- Starred pairs will be rendered here -->
                     </div>
+                </div>
+
+                <!-- Custom Folders Container -->
+                <div class="custom-folders-container" id="customFoldersContainer">
+                    <!-- Custom folders will be rendered here dynamically -->
                 </div>
 
                 <!-- All Conversations Folder (Always Expanded) -->
@@ -166,6 +178,25 @@
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                             <input type="text" placeholder="Search in this conversation..." id="threadSearchInput">
+                            <div class="search-nav-controls" id="searchNavControls" style="display: none;">
+                                <span class="search-match-count" id="searchMatchCount">0/0</span>
+                                <button class="search-nav-btn" id="searchPrevBtn" title="Previous match">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                </button>
+                                <button class="search-nav-btn" id="searchNextBtn" title="Next match">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                                <button class="search-close-btn" id="searchCloseBtn" title="Clear search">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -184,5 +215,50 @@
     <script src="indexeddb.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
+
+    <!-- Context Menus -->
+    <div id="conversationContextMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" data-action="move">Move to...</div>
+    </div>
+
+    <div id="folderContextMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" data-action="rename">Rename</div>
+        <div class="context-menu-item" data-action="color">Change Color</div>
+        <div class="context-menu-item" data-action="delete">Delete</div>
+    </div>
+
+    <div id="moveToSubmenu" class="context-menu context-submenu" style="display: none;">
+        <div class="context-menu-item" data-folder="all">All Conversations</div>
+        <!-- Custom folders will be added here dynamically -->
+    </div>
+
+    <div id="colorSubmenu" class="context-menu context-submenu color-submenu" style="display: none;">
+        <!-- Color options will be added here dynamically -->
+    </div>
+
+    <!-- New Folder Dialog -->
+    <div id="newFolderDialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Create New Folder</h3>
+            <input type="text" id="newFolderName" placeholder="Folder name" maxlength="30">
+            <div class="color-picker">
+                <span>Color:</span>
+                <div class="preset-colors" id="presetColors">
+                    <div class="color-option" data-color="#ef4444" style="background-color: #ef4444;"></div>
+                    <div class="color-option" data-color="#f97316" style="background-color: #f97316;"></div>
+                    <div class="color-option" data-color="#eab308" style="background-color: #eab308;"></div>
+                    <div class="color-option" data-color="#22c55e" style="background-color: #22c55e;"></div>
+                    <div class="color-option" data-color="#3b82f6" style="background-color: #3b82f6;"></div>
+                    <div class="color-option selected" data-color="#8b5cf6" style="background-color: #8b5cf6;"></div>
+                    <div class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></div>
+                    <div class="color-option" data-color="#6b7280" style="background-color: #6b7280;"></div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" id="cancelNewFolder">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmNewFolder">Create</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

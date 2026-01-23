@@ -7,6 +7,12 @@ class ChatGPTParserApp {
         this.searchResults = [];
         this.currentSort = 'newestCreated'; // Default sort option
         this.highlightedPairId = null; // For starred pair highlighting
+
+        // Thread search state
+        this.searchMatches = []; // Array of match elements
+        this.currentMatchIndex = -1; // Current highlighted match
+        this.searchQuery = ''; // Current search query
+
         this.init();
     }
 
@@ -90,6 +96,33 @@ class ChatGPTParserApp {
             this.handleThreadSearch(e.target.value);
         });
 
+        document.getElementById('threadSearchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    this.highlightPreviousMatch();
+                } else {
+                    this.highlightNextMatch();
+                }
+            } else if (e.key === 'F3' || (e.ctrlKey && e.key === 'g')) {
+                e.preventDefault();
+                this.highlightNextMatch();
+            }
+        });
+
+        // Search navigation buttons
+        document.getElementById('searchNextBtn').addEventListener('click', () => {
+            this.highlightNextMatch();
+        });
+
+        document.getElementById('searchPrevBtn').addEventListener('click', () => {
+            this.highlightPreviousMatch();
+        });
+
+        document.getElementById('searchCloseBtn').addEventListener('click', () => {
+            this.clearThreadSearch();
+        });
+
         // Save project
         document.getElementById('saveProjectBtn').addEventListener('click', () => {
             this.saveProject();
@@ -99,6 +132,21 @@ class ChatGPTParserApp {
         document.getElementById('clearDataBtn').addEventListener('click', () => {
             if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
                 this.clearAllData();
+            }
+        });
+
+        // New Folder button
+        document.getElementById('newFolderBtn').addEventListener('click', () => {
+            this.showNewFolderDialog();
+        });
+
+        // Context menus
+        this.initializeContextMenus();
+
+        // Close context menus on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                this.hideAllContextMenus();
             }
         });
     }
@@ -126,31 +174,39 @@ class ChatGPTParserApp {
         if (!files || files.length === 0) return;
 
         const totalConversations = [];
-        let processed = 0;
+        const allWarnings = [];
 
         for (const file of files) {
             try {
                 const content = await file.text();
                 let conversations = [];
+                let warnings = [];
 
                 if (file.name.endsWith('.json')) {
                     const jsonData = JSON.parse(content);
-                    conversations = this.data.parseJSONExport(jsonData);
+                    const result = this.data.parseJSONExport(jsonData);
+                    conversations = result.conversations;
+                    warnings = result.warnings;
                 } else if (file.name.endsWith('.html')) {
                     conversations = this.data.parseHTMLExport(content);
                 }
 
                 totalConversations.push(...conversations);
-                processed++;
+                allWarnings.push(...warnings);
             } catch (error) {
                 console.error('Error parsing file', file.name, ':', error);
                 alert(`Error parsing file: ${file.name}\n\n${error.message}`);
             }
         }
 
+        // Log warnings if any
+        if (allWarnings.length > 0) {
+            console.warn('Import warnings:', allWarnings);
+        }
+
         if (totalConversations.length > 0) {
             await this.data.addConversations(totalConversations);
-            alert(`Successfully imported ${totalConversations.length} conversation(s)!`);
+            alert(`Successfully imported ${totalConversations.length} conversation(s)!${allWarnings.length > 0 ? `\n\n(${allWarnings.length} warning(s) - see console for details)` : ''}`);
             this.updateUI();
         } else {
             alert('No valid conversations found in the uploaded file(s).');
@@ -318,6 +374,12 @@ class ChatGPTParserApp {
             this.toggleStarConversation(conv.id);
         });
 
+        // Add right-click context menu
+        item.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.showConversationContextMenu(e, conv.id);
+        });
+
         return item;
     }
 
@@ -394,7 +456,7 @@ class ChatGPTParserApp {
         this.updateUI();
 
         // Clear thread search
-        document.getElementById('threadSearchInput').value = '';
+        this.clearThreadSearch();
 
         // Close sidebar on mobile
         if (window.innerWidth <= 768) {
@@ -666,7 +728,7 @@ class ChatGPTParserApp {
         this.updateUI();
 
         // Clear thread search
-        document.getElementById('threadSearchInput').value = '';
+        this.clearThreadSearch();
 
         // Close sidebar on mobile
         if (window.innerWidth <= 768) {
@@ -679,10 +741,183 @@ class ChatGPTParserApp {
     }
 
     handleThreadSearch(query) {
+        this.searchQuery = query;
+        const conv = this.data.getCurrentConversation();
+
+        if (!conv) return;
+
+        // Clear previous highlights
+        this.clearSearchHighlights();
+
+        if (!query.trim()) {
+            // Show all pairs if search is empty
+            this.renderPairs(conv.pairs);
+            this.hideSearchNav();
+            return;
+        }
+
+        // Show all pairs first
+        this.renderPairs(conv.pairs);
+
+        // Then highlight matches
+        this.highlightSearchResults(query);
+        this.showSearchNav();
+    }
+
+    highlightSearchResults(query) {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        this.searchMatches = [];
+
+        // Find all text nodes in message elements
+        const walker = document.createTreeWalker(
+            messagesContainer,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: (node) => {
+                    // Only search in message text, not in buttons or metadata
+                    if (node.parentElement.closest('.message-actions, .model-badge, button')) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            }
+        );
+
+        const nodesToHighlight = [];
+        let node;
+        while (node = walker.nextNode()) {
+            if (regex.test(node.textContent)) {
+                nodesToHighlight.push(node);
+            }
+        }
+
+        // Apply highlighting
+        nodesToHighlight.forEach(textNode => {
+            const fragment = document.createDocumentFragment();
+            let lastIdx = 0;
+            let match;
+
+            // Reset regex for this node
+            regex.lastIndex = 0;
+
+            while ((match = regex.exec(textNode.textContent)) !== null) {
+                // Add text before match
+                fragment.appendChild(document.createTextNode(textNode.textContent.slice(lastIdx, match.index)));
+
+                // Add highlighted match
+                const highlightSpan = document.createElement('span');
+                highlightSpan.className = 'search-highlight';
+                highlightSpan.textContent = match[0];
+                highlightSpan.dataset.matchIndex = this.searchMatches.length;
+                fragment.appendChild(highlightSpan);
+                this.searchMatches.push(highlightSpan);
+
+                lastIdx = match.index + match[0].length;
+            }
+
+            // Add remaining text
+            if (lastIdx < textNode.textContent.length) {
+                fragment.appendChild(document.createTextNode(textNode.textContent.slice(lastIdx)));
+            }
+
+            textNode.parentNode.replaceChild(fragment, textNode);
+        });
+
+        // Update match count
+        this.updateMatchCount();
+
+        // Highlight first match
+        if (this.searchMatches.length > 0) {
+            this.highlightMatch(0);
+        }
+    }
+
+    clearSearchHighlights() {
+        // Remove all highlight spans
+        document.querySelectorAll('.search-highlight').forEach(highlight => {
+            const parent = highlight.parentNode;
+            parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+            parent.normalize(); // Merge adjacent text nodes
+        });
+
+        this.searchMatches = [];
+        this.currentMatchIndex = -1;
+    }
+
+    highlightMatch(index) {
+        if (this.searchMatches.length === 0) return;
+
+        // Remove active class from current match
+        if (this.currentMatchIndex >= 0 && this.currentMatchIndex < this.searchMatches.length) {
+            this.searchMatches[this.currentMatchIndex].classList.remove('active');
+        }
+
+        // Set new match
+        this.currentMatchIndex = index;
+        const matchElement = this.searchMatches[index];
+        matchElement.classList.add('active');
+
+        // Scroll to match
+        matchElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+
+        // Update match count
+        this.updateMatchCount();
+    }
+
+    highlightNextMatch() {
+        if (this.searchMatches.length === 0) return;
+
+        const nextIndex = (this.currentMatchIndex + 1) % this.searchMatches.length;
+        this.highlightMatch(nextIndex);
+    }
+
+    highlightPreviousMatch() {
+        if (this.searchMatches.length === 0) return;
+
+        const prevIndex = (this.currentMatchIndex - 1 + this.searchMatches.length) % this.searchMatches.length;
+        this.highlightMatch(prevIndex);
+    }
+
+    updateMatchCount() {
+        const countEl = document.getElementById('searchMatchCount');
+        if (countEl) {
+            const current = this.currentMatchIndex >= 0 ? this.currentMatchIndex + 1 : 0;
+            countEl.textContent = `${current}/${this.searchMatches.length}`;
+        }
+    }
+
+    showSearchNav() {
+        const nav = document.getElementById('searchNavControls');
+        if (nav) {
+            nav.style.display = this.searchMatches.length > 0 ? 'flex' : 'none';
+        }
+    }
+
+    hideSearchNav() {
+        const nav = document.getElementById('searchNavControls');
+        if (nav) {
+            nav.style.display = 'none';
+        }
+    }
+
+    clearThreadSearch() {
+        document.getElementById('threadSearchInput').value = '';
+        this.searchQuery = '';
+        this.clearSearchHighlights();
+        this.hideSearchNav();
+
         const conv = this.data.getCurrentConversation();
         if (conv) {
-            this.renderPairs(conv.pairs, query);
+            this.renderPairs(conv.pairs);
         }
+    }
+
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     toggleSidebar() {
@@ -1005,6 +1240,481 @@ class ChatGPTParserApp {
 
     formatDateTime(date) {
         return date.toLocaleString();
+    }
+
+    // =========================================================================
+    // FOLDER METHODS
+    // =========================================================================
+
+    /**
+     * Initialize context menus for conversations and folders
+     */
+    initializeContextMenus() {
+        // Conversation context menu
+        const conversationContextMenu = document.getElementById('conversationContextMenu');
+        conversationContextMenu.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            if (action === 'move') {
+                this.showMoveToSubmenu(e.target);
+            }
+        });
+
+        // Folder context menu
+        const folderContextMenu = document.getElementById('folderContextMenu');
+        folderContextMenu.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            const folderId = folderContextMenu.dataset.folderId;
+            if (action === 'rename') {
+                this.renameFolder(folderId);
+            } else if (action === 'color') {
+                this.showColorSubmenu(e.target, folderId);
+            } else if (action === 'delete') {
+                this.deleteFolder(folderId);
+            }
+        });
+
+        // Move to submenu
+        const moveToSubmenu = document.getElementById('moveToSubmenu');
+        moveToSubmenu.addEventListener('click', (e) => {
+            const folderId = e.target.dataset.folder;
+            if (folderId !== undefined) {
+                this.moveConversationToFolder(folderId);
+            }
+        });
+
+        // Color submenu
+        const colorSubmenu = document.getElementById('colorSubmenu');
+        colorSubmenu.addEventListener('click', (e) => {
+            const color = e.target.dataset.color;
+            if (color) {
+                const folderId = colorSubmenu.dataset.folderId;
+                this.selectFolderColor(folderId, color);
+            }
+        });
+
+        // New folder dialog
+        document.getElementById('cancelNewFolder').addEventListener('click', () => {
+            this.hideNewFolderDialog();
+        });
+
+        document.getElementById('confirmNewFolder').addEventListener('click', () => {
+            this.createNewFolder();
+        });
+    }
+
+    /**
+     * Render custom folders in sidebar
+     */
+    renderCustomFolders() {
+        const container = document.getElementById('customFoldersContainer');
+
+        // Check if we need to do full rebuild or just update
+        const existingFolderIds = Array.from(container.querySelectorAll('.custom-folder'))
+            .map(el => el.dataset.folderId);
+
+        const sortedFolders = [...this.data.folders].sort((a, b) => a.order - b.order);
+        const currentFolderIds = sortedFolders.map(f => f.id);
+
+        // Full rebuild only if folder structure changed (folders added/removed/reordered)
+        const needsRebuild = !this.arraysEqual(existingFolderIds, currentFolderIds);
+
+        if (needsRebuild) {
+            // Full rebuild
+            container.innerHTML = '';
+
+            sortedFolders.forEach(folder => {
+                const conversations = this.data.getConversationsInFolder(folder.id);
+                const folderDiv = document.createElement('div');
+                folderDiv.className = 'custom-folder';
+                folderDiv.dataset.folderId = folder.id;
+
+                folderDiv.innerHTML = `
+                    <div class="custom-folder-header" data-folder-id="${folder.id}">
+                        <span class="folder-color-indicator" style="background-color: ${folder.color}"></span>
+                        <span class="folder-title">${this.escapeHtml(folder.name)}</span>
+                        <span class="folder-count">(${conversations.length})</span>
+                    </div>
+                    <div class="folder-content collapsed" id="folderContent_${folder.id}">
+                        <!-- Conversations will be rendered here -->
+                    </div>
+                `;
+
+                // Add click handler for expanding/collapsing
+                const header = folderDiv.querySelector('.custom-folder-header');
+                header.addEventListener('click', (e) => {
+                    if (!e.target.closest('.context-menu')) {
+                        const content = document.getElementById(`folderContent_${folder.id}`);
+                        content.classList.toggle('collapsed');
+                    }
+                });
+
+                // Add right-click handler
+                header.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.showFolderContextMenu(e, folder.id);
+                });
+
+                container.appendChild(folderDiv);
+            });
+        } else {
+            // Just update counts, not structure
+            sortedFolders.forEach(folder => {
+                const folderDiv = container.querySelector(`.custom-folder[data-folder-id="${folder.id}"]`);
+                if (folderDiv) {
+                    const countEl = folderDiv.querySelector('.folder-count');
+                    const conversations = this.data.getConversationsInFolder(folder.id);
+                    countEl.textContent = `(${conversations.length})`;
+                }
+            });
+        }
+    }
+
+    /**
+     * Helper to compare arrays
+     */
+    arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Update conversation list to include folders
+     */
+    updateConversationList() {
+        // Get all conversations
+        let allConversations = this.data.conversations;
+
+        // Get starred conversations
+        const starredConversations = allConversations.filter(conv => conv.starred);
+
+        // Get starred pairs
+        const allStarredPairs = this.data.getStarredPairs();
+
+        // Apply search filter if active
+        const searchQuery = document.getElementById('globalSearchInput').value.trim();
+
+        if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            allConversations = allConversations.filter(conv => {
+                if (conv.title.toLowerCase().includes(lowerQuery)) {
+                    return true;
+                }
+                return conv.pairs.some(pair =>
+                    pair.question.content.toLowerCase().includes(lowerQuery) ||
+                    pair.answers.some(ans => ans.content.toLowerCase().includes(lowerQuery))
+                );
+            });
+        }
+
+        // Sort conversations
+        const sortedAll = this.sortConversations(allConversations);
+        const sortedStarred = this.sortConversations(starredConversations);
+
+        // Update folder counts
+        document.querySelector('#allConversationsFolder .folder-count').textContent = `(${sortedAll.length})`;
+        document.querySelector('#starredConversationsFolder .folder-count').textContent = `(${sortedStarred.length})`;
+        document.querySelector('#starredPairsFolder .folder-count').textContent = `(${allStarredPairs.length})`;
+
+        // Render system folders
+        this.renderConversationFolder(
+            document.getElementById('allConversationsContent'),
+            sortedAll,
+            searchQuery
+        );
+
+        this.renderConversationFolder(
+            document.getElementById('starredConversationsContent'),
+            sortedStarred,
+            searchQuery
+        );
+
+        this.renderStarredPairsFolder(
+            document.getElementById('starredPairsContent'),
+            allStarredPairs,
+            searchQuery
+        );
+
+        // Render custom folders
+        this.renderCustomFolders();
+        this.renderCustomFolderContent(sortedAll, searchQuery);
+    }
+
+    /**
+     * Render conversation content in custom folders
+     */
+    renderCustomFolderContent(conversations, searchQuery) {
+        const sortedFolders = [...this.data.folders].sort((a, b) => a.order - b.order);
+
+        sortedFolders.forEach(folder => {
+            const folderConversations = this.data.getConversationsInFolder(folder.id);
+            const content = document.getElementById(`folderContent_${folder.id}`);
+
+            if (!content) return;
+
+            content.innerHTML = '';
+
+            if (folderConversations.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `<p>Empty folder</p>`;
+                content.appendChild(emptyState);
+                return;
+            }
+
+            // Filter by search query if active
+            let filteredConversations = folderConversations;
+            if (searchQuery) {
+                const lowerQuery = searchQuery.toLowerCase();
+                filteredConversations = folderConversations.filter(conv =>
+                    conv.title.toLowerCase().includes(lowerQuery) ||
+                    conv.pairs.some(pair =>
+                        pair.question.content.toLowerCase().includes(lowerQuery) ||
+                        pair.answers.some(ans => ans.content.toLowerCase().includes(lowerQuery))
+                    )
+                );
+            }
+
+            // Sort conversations
+            const sorted = this.sortConversations(filteredConversations);
+
+            sorted.forEach(conv => {
+                const item = this.createConversationItem(conv);
+                content.appendChild(item);
+            });
+        });
+    }
+
+    /**
+     * Show new folder dialog
+     */
+    showNewFolderDialog() {
+        const dialog = document.getElementById('newFolderDialog');
+        dialog.style.display = 'flex';
+        document.getElementById('newFolderName').value = '';
+        document.getElementById('newFolderName').focus();
+
+        // Reset color selection to default (purple)
+        document.querySelectorAll('#presetColors .color-option').forEach(el => {
+            el.classList.remove('selected');
+        });
+        const defaultColor = document.querySelector('#presetColors .color-option[data-color="#8b5cf6"]');
+        if (defaultColor) {
+            defaultColor.classList.add('selected');
+        }
+
+        // Add click handlers for color options (remove old handlers first)
+        const colorOptions = document.querySelectorAll('#presetColors .color-option');
+        colorOptions.forEach(option => {
+            option.removeEventListener('click', this.handleColorOptionClick);
+            option.addEventListener('click', this.handleColorOptionClick);
+        });
+    }
+
+    /**
+     * Handle color option click
+     */
+    handleColorOptionClick(e) {
+        e.stopPropagation();
+        document.querySelectorAll('#presetColors .color-option').forEach(el => {
+            el.classList.remove('selected');
+        });
+        e.target.classList.add('selected');
+    }
+
+    /**
+     * Hide new folder dialog
+     */
+    hideNewFolderDialog() {
+        document.getElementById('newFolderDialog').style.display = 'none';
+    }
+
+    /**
+     * Create new folder
+     */
+    async createNewFolder() {
+        const nameInput = document.getElementById('newFolderName');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+            alert('Please enter a folder name');
+            return;
+        }
+
+        // Get selected color from preset options
+        const selectedColorEl = document.querySelector('#presetColors .color-option.selected');
+        const color = selectedColorEl ? selectedColorEl.dataset.color : '#8b5cf6';
+
+        await this.data.createFolder(name, color);
+        this.hideNewFolderDialog();
+        this.updateConversationList();
+    }
+
+    /**
+     * Show folder context menu
+     */
+    showFolderContextMenu(event, folderId) {
+        const menu = document.getElementById('folderContextMenu');
+        menu.dataset.folderId = folderId;
+        menu.style.left = `${event.pageX}px`;
+        menu.style.top = `${event.pageY}px`;
+        menu.style.display = 'block';
+    }
+
+    /**
+     * Show conversation context menu
+     */
+    showConversationContextMenu(event, conversationId) {
+        const menu = document.getElementById('conversationContextMenu');
+        menu.dataset.conversationId = conversationId;
+        menu.style.left = `${event.pageX}px`;
+        menu.style.top = `${event.pageY}px`;
+        menu.style.display = 'block';
+    }
+
+    /**
+     * Show "Move to" submenu
+     */
+    showMoveToSubmenu(menuItem) {
+        const submenu = document.getElementById('moveToSubmenu');
+        const rect = menuItem.getBoundingClientRect();
+
+        // Build folder list
+        let folderOptions = '<div class="context-menu-item" data-folder="all">📁 All Conversations</div>';
+
+        this.data.folders.forEach(folder => {
+            folderOptions += `<div class="context-menu-item" data-folder="${folder.id}">
+                <span class="folder-color-dot" style="background-color: ${folder.color}"></span>
+                ${this.escapeHtml(folder.name)}
+            </div>`;
+        });
+
+        submenu.innerHTML = folderOptions;
+        submenu.style.left = `${rect.right}px`;
+        submenu.style.top = `${rect.top}px`;
+        submenu.style.display = 'block';
+
+        // Store conversation ID for move operation
+        submenu.dataset.conversationId = document.getElementById('conversationContextMenu').dataset.conversationId;
+    }
+
+    /**
+     * Hide all context menus
+     */
+    hideAllContextMenus() {
+        document.querySelectorAll('.context-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+
+    /**
+     * Move conversation to folder
+     */
+    async moveConversationToFolder(folderId) {
+        const submenu = document.getElementById('moveToSubmenu');
+        const conversationId = submenu.dataset.conversationId;
+
+        if (conversationId) {
+            // Convert 'all' to null (uncategorized)
+            const targetFolderId = folderId === 'all' ? null : folderId;
+            await this.data.moveConversationToFolder(conversationId, targetFolderId);
+            this.updateConversationList();
+        }
+
+        this.hideAllContextMenus();
+    }
+
+    /**
+     * Rename folder
+     */
+    async renameFolder(folderId) {
+        const folder = this.data.getFolder(folderId);
+        if (!folder) return;
+
+        const newName = prompt('Enter new folder name:', folder.name);
+        if (newName && newName.trim()) {
+            await this.data.updateFolder(folderId, { name: newName.trim() });
+            this.updateConversationList();
+        }
+
+        this.hideAllContextMenus();
+    }
+
+    /**
+     * Show color selection submenu
+     */
+    showColorSubmenu(menuItem, folderId) {
+        const submenu = document.getElementById('colorSubmenu');
+        const rect = menuItem.getBoundingClientRect();
+        const folder = this.data.getFolder(folderId);
+
+        if (!folder) return;
+
+        // Preset colors
+        const colors = [
+            { color: '#ef4444', name: 'Red' },
+            { color: '#f97316', name: 'Orange' },
+            { color: '#eab308', name: 'Yellow' },
+            { color: '#22c55e', name: 'Green' },
+            { color: '#3b82f6', name: 'Blue' },
+            { color: '#8b5cf6', name: 'Purple' },
+            { color: '#ec4899', name: 'Pink' },
+            { color: '#6b7280', name: 'Gray' }
+        ];
+
+        // Build color options
+        let colorOptions = '';
+        colors.forEach(c => {
+            const isSelected = c.color === folder.color ? 'selected' : '';
+            colorOptions += `<div class="color-option ${isSelected}" data-color="${c.color}" style="background-color: ${c.color};" title="${c.name}"></div>`;
+        });
+
+        submenu.innerHTML = colorOptions;
+        submenu.style.left = `${rect.right}px`;
+        submenu.style.top = `${rect.top}px`;
+        submenu.style.display = 'block';
+        submenu.dataset.folderId = folderId;
+    }
+
+    /**
+     * Select folder color from submenu
+     */
+    async selectFolderColor(folderId, color) {
+        await this.data.updateFolder(folderId, { color: color });
+        this.updateConversationList();
+        this.hideAllContextMenus();
+    }
+
+    /**
+     * Change folder color (deprecated - now uses showColorSubmenu)
+     * Kept for backwards compatibility
+     */
+    async changeFolderColor(folderId) {
+        const folder = this.data.getFolder(folderId);
+        if (!folder) return;
+
+        // Find the color menu item and trigger submenu
+        const colorMenuItem = document.querySelector('#folderContextMenu [data-action="color"]');
+        if (colorMenuItem) {
+            this.showColorSubmenu(colorMenuItem, folderId);
+        }
+    }
+
+    /**
+     * Delete folder
+     */
+    async deleteFolder(folderId) {
+        const folder = this.data.getFolder(folderId);
+        if (!folder) return;
+
+        if (confirm(`Delete folder "${folder.name}"? Conversations will be moved to All Conversations.`)) {
+            await this.data.deleteFolder(folderId);
+            this.updateConversationList();
+        }
+
+        this.hideAllContextMenus();
     }
 }
 

@@ -1,9 +1,20 @@
 // Data Module for ChatGPT Parser
 // Handles parsing, storage, and management of ChatGPT conversations
 
+// Format type constants
+const FORMAT_TYPES = {
+    APP_EXPORT: 'app_export',           // App's own export
+    CLAUDE: 'claude',                   // Claude export
+    DEEPSEEK: 'deepseek',               // DeepSeek export
+    CHATGPT_MAPPING: 'chatgpt_mapping', // ChatGPT data export
+    SIMPLE: 'simple',                   // Simple message array
+    WRAPPED_SIMPLE: 'wrapped_simple'    // Nested simple format
+};
+
 class ChatGPTData {
     constructor() {
         this.conversations = [];
+        this.folders = []; // Custom folders
         this.currentSort = 'newestCreated'; // Default sort option
         this.currentConversationId = null;
         this.storageKey = 'chatgpt_parser_data';
@@ -15,101 +26,313 @@ class ChatGPTData {
 
         // Storage mode: 'indexeddb' or 'localstorage'
         this.storageMode = this.idbStorage ? 'indexeddb' : 'localstorage';
+
+        // Initialize with one default folder on first use
+        this.initializeDefaultFolder();
+    }
+
+    // Initialize default folder if no folders exist
+    initializeDefaultFolder() {
+        if (this.folders.length === 0) {
+            this.folders.push({
+                id: 'folder_default',
+                name: 'My Folder',
+                color: '#3b82f6', // Blue
+                order: 0
+            });
+        }
+    }
+
+    // =========================================================================
+    // FORMAT VALIDATOR FUNCTIONS
+    // =========================================================================
+
+    /**
+     * Checks if conversation is in app's own export format
+     * App export has pre-parsed pairs array
+     */
+    isAppExportFormat(conv) {
+        return conv.pairs && Array.isArray(conv.pairs) && conv.pairs.length > 0;
+    }
+
+    /**
+     * Checks if conversation is in Claude format
+     * Claude uses chat_messages array with ISO 8601 timestamps
+     */
+    isClaudeFormat(conv) {
+        return conv.chat_messages && Array.isArray(conv.chat_messages);
+    }
+
+    /**
+     * Checks if conversation is in DeepSeek format
+     * DeepSeek uses mapping structure with ISO 8601 timestamps
+     */
+    isDeepSeekFormat(conv) {
+        return conv.mapping && (conv.inserted_at || conv.updated_at);
+    }
+
+    /**
+     * Checks if conversation is in ChatGPT mapping format
+     * ChatGPT uses mapping structure with current_node pointer
+     */
+    isChatGPTMappingFormat(conv) {
+        return conv.mapping && conv.current_node;
+    }
+
+    /**
+     * Checks if conversation is in simple message array format
+     * Simple format has messages array at root level
+     */
+    isSimpleFormat(conv) {
+        return conv.messages && Array.isArray(conv.messages);
+    }
+
+    /**
+     * Checks if conversation is in wrapped simple format
+     * Wrapped simple has nested conversation.messages
+     */
+    isWrappedSimpleFormat(conv) {
+        return conv.conversation && conv.conversation.messages;
+    }
+
+    // =========================================================================
+    // FORMAT DETECTION
+    // =========================================================================
+
+    /**
+     * Detects the format of a single conversation object
+     * @param {Object} conv - Conversation object to detect
+     * @returns {string} Format type constant
+     * @throws {Error} If format cannot be determined
+     */
+    detectConversationFormat(conv) {
+        // Check most specific formats first (app export)
+        if (this.isAppExportFormat(conv)) {
+            return FORMAT_TYPES.APP_EXPORT;
+        }
+
+        // Check platform-specific formats
+        if (this.isClaudeFormat(conv)) {
+            return FORMAT_TYPES.CLAUDE;
+        }
+
+        if (this.isDeepSeekFormat(conv)) {
+            return FORMAT_TYPES.DEEPSEEK;
+        }
+
+        if (this.isChatGPTMappingFormat(conv)) {
+            return FORMAT_TYPES.CHATGPT_MAPPING;
+        }
+
+        if (this.isSimpleFormat(conv)) {
+            return FORMAT_TYPES.SIMPLE;
+        }
+
+        if (this.isWrappedSimpleFormat(conv)) {
+            return FORMAT_TYPES.WRAPPED_SIMPLE;
+        }
+
+        // Unknown format - log and throw
+        console.warn('Unknown conversation format:', conv);
+        throw new Error(`Unable to determine format for conversation: ${conv.title || conv.id || 'unknown'}`);
+    }
+
+    // =========================================================================
+    // INDIVIDUAL FORMAT PARSERS
+    // =========================================================================
+
+    /**
+     * Parses app's own export format
+     * Pairs are already parsed, just need to return them
+     */
+    parseAppExport(conv) {
+        return {
+            pairs: conv.pairs,
+            createTime: conv.createTime || Date.now() / 1000,
+            updateTime: conv.updateTime || Date.now() / 1000,
+            source: conv.source || 'app_export',
+            title: conv.title
+        };
+    }
+
+    /**
+     * Parses Claude format
+     * Claude uses chat_messages array with ISO 8601 timestamps
+     */
+    parseClaudeFormat(conv) {
+        return {
+            pairs: this.parseClaudeMessages(conv.chat_messages),
+            createTime: this.parseISO8601(conv.created_at),
+            updateTime: this.parseISO8601(conv.updated_at),
+            source: 'claude',
+            title: conv.name || conv.title
+        };
+    }
+
+    /**
+     * Parses DeepSeek format
+     * DeepSeek uses mapping with fragments
+     */
+    parseDeepSeekFormat(conv) {
+        return {
+            pairs: this.parseDeepSeekMapping(conv.mapping),
+            createTime: this.parseISO8601(conv.inserted_at),
+            updateTime: this.parseISO8601(conv.updated_at),
+            source: 'deepseek',
+            title: conv.title
+        };
+    }
+
+    /**
+     * Parses ChatGPT mapping format
+     * ChatGPT uses mapping with current_node for traversal
+     */
+    parseChatGPTMappingFormat(conv) {
+        return {
+            pairs: this.parseMappingMessages(conv.mapping, conv.current_node),
+            createTime: conv.create_time || Date.now() / 1000,
+            updateTime: conv.update_time || Date.now() / 1000,
+            source: 'chatgpt',
+            title: conv.title
+        };
+    }
+
+    /**
+     * Parses simple message array format
+     * Simple format has flat messages array
+     */
+    parseSimpleFormat(conv) {
+        return {
+            pairs: this.convertMessagesToPairs(conv.messages),
+            createTime: conv.create_time || Date.now() / 1000,
+            updateTime: conv.update_time || Date.now() / 1000,
+            source: 'chatgpt',
+            title: conv.title
+        };
+    }
+
+    /**
+     * Parses wrapped simple format
+     * Has nested conversation.messages structure
+     */
+    parseWrappedSimpleFormat(conv) {
+        return this.parseSimpleFormat(conv.conversation);
+    }
+
+    /**
+     * Strategy map: format type → parser function
+     */
+    parseByFormat = {
+        [FORMAT_TYPES.APP_EXPORT]: (conv) => this.parseAppExport(conv),
+        [FORMAT_TYPES.CLAUDE]: (conv) => this.parseClaudeFormat(conv),
+        [FORMAT_TYPES.DEEPSEEK]: (conv) => this.parseDeepSeekFormat(conv),
+        [FORMAT_TYPES.CHATGPT_MAPPING]: (conv) => this.parseChatGPTMappingFormat(conv),
+        [FORMAT_TYPES.SIMPLE]: (conv) => this.parseSimpleFormat(conv),
+        [FORMAT_TYPES.WRAPPED_SIMPLE]: (conv) => this.parseWrappedSimpleFormat(conv)
+    };
+
+    // =========================================================================
+    // MAIN PARSING FUNCTIONS
+    // =========================================================================
+
+    /**
+     * Normalize timestamps from pairs if available
+     */
+    normalizeTimestamps(pairs, createTime, updateTime) {
+        let actualCreateTime = createTime;
+        let actualUpdateTime = updateTime;
+
+        if (pairs.length > 0) {
+            // Get first message timestamp as create time
+            const firstMessage = pairs[0].question;
+            if (firstMessage && firstMessage.timestamp) {
+                actualCreateTime = Math.min(actualCreateTime, firstMessage.timestamp);
+            }
+
+            // Get last answer timestamp as update time
+            const lastPair = pairs[pairs.length - 1];
+            if (lastPair && lastPair.answers.length > 0) {
+                const lastAnswer = lastPair.answers[lastPair.answers.length - 1];
+                if (lastAnswer && lastAnswer.timestamp) {
+                    actualUpdateTime = Math.max(actualUpdateTime, lastAnswer.timestamp);
+                }
+            }
+        }
+
+        return {
+            createTime: actualCreateTime,
+            updateTime: actualUpdateTime
+        };
     }
 
     // Parse ChatGPT JSON export
     parseJSONExport(jsonData) {
         const conversations = [];
+        const warnings = [];
 
         // Handle different export formats
+        let conversationList = [];
         if (Array.isArray(jsonData)) {
             // Format: Array of conversations
-            jsonData.forEach(conv => {
-                conversations.push(this.parseSingleConversation(conv));
-            });
+            conversationList = jsonData;
         } else if (jsonData.conversations && Array.isArray(jsonData.conversations)) {
             // Format: { conversations: [...] }
-            jsonData.conversations.forEach(conv => {
-                conversations.push(this.parseSingleConversation(conv));
-            });
+            conversationList = jsonData.conversations;
         } else if (jsonData.mapping) {
             // Format: ChatGPT data export format with mapping
-            conversations.push(this.parseMappingFormat(jsonData));
+            conversationList = [jsonData];
+        } else {
+            warnings.push('Unknown JSON structure');
+            return { conversations: [], warnings };
         }
 
-        return conversations.filter(c => c !== null);
+        conversationList.forEach((conv, index) => {
+            try {
+                const parsed = this.parseSingleConversation(conv);
+                if (parsed) {
+                    conversations.push(parsed);
+                } else {
+                    warnings.push(`Conversation at index ${index} could not be parsed`);
+                }
+            } catch (error) {
+                warnings.push(`Conversation at index ${index}: ${error.message}`);
+            }
+        });
+
+        return {
+            conversations: conversations.filter(c => c !== null),
+            warnings
+        };
     }
 
     parseSingleConversation(conv) {
         try {
-            // Detect format and extract metadata
-            const isDeepSeek = conv.inserted_at && conv.updated_at;
-            const isClaude = conv.chat_messages && Array.isArray(conv.chat_messages);
-            const title = conv.title || conv.name || 'New Chat'; // Claude uses 'name' field
+            // Step 1: Detect format
+            const format = this.detectConversationFormat(conv);
 
-            let createTime, updateTime;
-            if (isDeepSeek || isClaude) {
-                // Parse DeepSeek/Claude ISO 8601 timestamps
-                createTime = this.parseISO8601(conv.inserted_at || conv.created_at);
-                updateTime = this.parseISO8601(conv.updated_at);
-            } else {
-                // ChatGPT format (Unix timestamps)
-                createTime = conv.create_time || conv.timestamp || Date.now() / 1000;
-                updateTime = conv.update_time || conv.timestamp || Date.now() / 1000;
-            }
+            // Step 2: Parse based on format using strategy map
+            const parsed = this.parseByFormat[format](conv);
 
-            // Parse messages based on format
-            let pairs = [];
-            if (isClaude) {
-                // Claude format with chat_messages array
-                pairs = this.parseClaudeMessages(conv.chat_messages);
-            } else if (conv.mapping) {
-                // Detect if it's DeepSeek or ChatGPT mapping format
-                if (isDeepSeek) {
-                    pairs = this.parseDeepSeekMapping(conv.mapping);
-                } else {
-                    // ChatGPT data export format - use current_node for traversal
-                    pairs = this.parseMappingMessages(conv.mapping, conv.current_node);
-                }
-            } else if (conv.messages && Array.isArray(conv.messages)) {
-                // Simple format - convert to pairs
-                pairs = this.convertMessagesToPairs(conv.messages);
-            } else if (conv.conversation && conv.conversation.messages) {
-                pairs = this.convertMessagesToPairs(conv.conversation.messages);
-            }
+            // Step 3: Normalize timestamps from pairs if available
+            const normalizedTimestamps = this.normalizeTimestamps(
+                parsed.pairs,
+                parsed.createTime,
+                parsed.updateTime
+            );
 
-            // Calculate actual timestamps from pairs if not provided
-            let actualCreateTime = createTime;
-            let actualUpdateTime = updateTime;
-
-            if (pairs.length > 0) {
-                // Get first message timestamp as create time
-                const firstMessage = pairs[0].question;
-                if (firstMessage && firstMessage.timestamp) {
-                    actualCreateTime = Math.min(actualCreateTime, firstMessage.timestamp);
-                }
-
-                // Get last answer timestamp as update time
-                const lastPair = pairs[pairs.length - 1];
-                if (lastPair && lastPair.answers.length > 0) {
-                    const lastAnswer = lastPair.answers[lastPair.answers.length - 1];
-                    if (lastAnswer && lastAnswer.timestamp) {
-                        actualUpdateTime = Math.max(actualUpdateTime, lastAnswer.timestamp);
-                    }
-                }
-            }
-
+            // Step 4: Return standardized conversation object
             return {
                 id: conv.conversation_id || conv.id || `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                title: title,
-                createTime: actualCreateTime,
-                updateTime: actualUpdateTime,
-                pairs: pairs,
+                title: parsed.title || 'New Chat',
+                createTime: normalizedTimestamps.createTime,
+                updateTime: normalizedTimestamps.updateTime,
+                pairs: parsed.pairs,
                 starred: false,
-                source: isClaude ? 'claude' : (isDeepSeek ? 'deepseek' : 'chatgpt') // Track source format
+                source: parsed.source,
+                folderId: conv.folderId || null // Preserve folder assignment
             };
         } catch (error) {
-            console.error('Error parsing conversation:', error);
+            console.error('Error parsing conversation:', error, 'Conversation:', conv);
             return null;
         }
     }
@@ -549,7 +772,8 @@ class ChatGPTData {
                     const jsonStr = htmlContent.substring(arrayStart, endIndex + 1);
                     try {
                         const jsonData = JSON.parse(jsonStr);
-                        return this.parseJSONExport(jsonData);
+                        const result = this.parseJSONExport(jsonData);
+                        return result.conversations;
                     } catch (error) {
                         console.error('Error parsing embedded JSON in HTML:', error);
                         console.log('Failed JSON string length:', jsonStr.length);
@@ -658,6 +882,7 @@ class ChatGPTData {
     async saveToStorage() {
         const data = {
             conversations: this.conversations,
+            folders: this.folders,
             currentConversationId: this.currentConversationId,
             currentSort: this.currentSort
         };
@@ -671,6 +896,7 @@ class ChatGPTData {
                 // Save settings
                 await this.idbStorage.saveSetting('currentConversationId', this.currentConversationId);
                 await this.idbStorage.saveSetting('currentSort', this.currentSort);
+                await this.idbStorage.saveSetting('folders', this.folders);
 
                 console.log('Data saved to IndexedDB');
                 return;
@@ -706,6 +932,14 @@ class ChatGPTData {
                     this.currentConversationId = await this.idbStorage.loadSetting('currentConversationId');
                     this.currentSort = await this.idbStorage.loadSetting('currentSort') || 'newestCreated';
 
+                    // Load folders
+                    const folders = await this.idbStorage.loadSetting('folders');
+                    if (folders && folders.length > 0) {
+                        this.folders = folders;
+                    } else {
+                        this.initializeDefaultFolder();
+                    }
+
                     console.log('Data loaded from IndexedDB');
                     return true;
                 } else {
@@ -723,14 +957,24 @@ class ChatGPTData {
             if (stored) {
                 const data = JSON.parse(stored);
                 this.conversations = data.conversations || [];
+                this.folders = data.folders || [];
                 this.currentConversationId = data.currentConversationId;
                 this.currentSort = data.currentSort || 'newestCreated';
+
+                // Initialize default folder if none exist
+                if (this.folders.length === 0) {
+                    this.initializeDefaultFolder();
+                }
+
                 console.log('Data loaded from localStorage');
                 return true;
             }
         } catch (error) {
             console.error('Error loading from localStorage:', error);
         }
+
+        // Initialize default folder if no data loaded
+        this.initializeDefaultFolder();
         return false;
     }
 
@@ -949,12 +1193,119 @@ class ChatGPTData {
         return false;
     }
 
+    // =========================================================================
+    // FOLDER MANAGEMENT METHODS
+    // =========================================================================
+
+    /**
+     * Create a new folder
+     */
+    async createFolder(name, color) {
+        const folder = {
+            id: `folder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: name,
+            color: color || '#3b82f6',
+            order: this.folders.length
+        };
+        this.folders.push(folder);
+        await this.saveToStorage();
+        return folder;
+    }
+
+    /**
+     * Update folder properties
+     */
+    async updateFolder(folderId, updates) {
+        const folder = this.folders.find(f => f.id === folderId);
+        if (folder) {
+            Object.assign(folder, updates);
+            await this.saveToStorage();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Delete a folder and move conversations back to "All Conversations"
+     */
+    async deleteFolder(folderId) {
+        const index = this.folders.findIndex(f => f.id === folderId);
+        if (index !== -1) {
+            // Remove folder
+            this.folders.splice(index, 1);
+
+            // Move conversations in this folder back to uncategorized
+            this.conversations.forEach(conv => {
+                if (conv.folderId === folderId) {
+                    conv.folderId = null;
+                }
+            });
+
+            // Reorder remaining folders
+            this.folders.forEach((f, idx) => {
+                f.order = idx;
+            });
+
+            await this.saveToStorage();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Reorder folders
+     */
+    async reorderFolders(folderIds) {
+        const reorderedFolders = [];
+        folderIds.forEach((id, index) => {
+            const folder = this.folders.find(f => f.id === id);
+            if (folder) {
+                folder.order = index;
+                reorderedFolders.push(folder);
+            }
+        });
+        this.folders = reorderedFolders;
+        await this.saveToStorage();
+    }
+
+    /**
+     * Get conversations in a specific folder
+     */
+    getConversationsInFolder(folderId) {
+        if (!folderId) {
+            // Return uncategorized conversations
+            return this.conversations.filter(conv => !conv.folderId);
+        }
+        return this.conversations.filter(conv => conv.folderId === folderId);
+    }
+
+    /**
+     * Get folder by ID
+     */
+    getFolder(folderId) {
+        return this.folders.find(f => f.id === folderId);
+    }
+
+    /**
+     * Move conversation to a folder
+     */
+    async moveConversationToFolder(conversationId, folderId) {
+        const conv = this.getConversation(conversationId);
+        if (conv) {
+            conv.folderId = folderId; // null means "All Conversations" (uncategorized)
+            await this.saveToStorage();
+            return true;
+        }
+        return false;
+    }
+
     // Export methods
     exportProject() {
         return {
             version: '1.0',
             exportDate: new Date().toISOString(),
             conversations: this.conversations,
+            folders: this.folders,
             metadata: {
                 totalConversations: this.conversations.length,
                 totalPairs: this.conversations.reduce((sum, conv) => sum + conv.pairs.length, 0)
@@ -965,6 +1316,10 @@ class ChatGPTData {
     importProject(projectData) {
         if (projectData && projectData.conversations) {
             this.addConversations(projectData.conversations);
+            // Import folders if available
+            if (projectData.folders && projectData.folders.length > 0) {
+                this.folders = projectData.folders;
+            }
             return true;
         }
         return false;

@@ -3,13 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatGPT Parser</title>
+    <title>LLM Conversation Organizer</title>
     <link rel="stylesheet" href="styles.css">
     <!-- KaTeX for equation rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 </head>
 <body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>LLM Conversation Organizer</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="nav-tab" data-tab="manage">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Manage
+            </button>
+            <button class="nav-tab" data-tab="ai">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+                AI Tools
+            </button>
+            <button class="nav-tab" data-tab="help">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                Help
+            </button>
+            <button class="nav-tab" data-tab="options">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Options
+            </button>
+        </div>
+    </nav>
+
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
@@ -209,6 +251,143 @@
         </main>
     </div>
 
+    <!-- Tab Panels -->
+    <!-- Manage Panel -->
+    <div id="manage-panel" class="tab-panel" style="display: none;">
+        <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>Manage Conversations</h2>
+                <button class="panel-close" onclick="window.app.closeTabPanel()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="panel-section">
+                    <h3>Import & Export</h3>
+                    <button class="panel-btn primary" onclick="document.getElementById('fileInput').click();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Import Conversations
+                    </button>
+                    <button class="panel-btn" onclick="window.app.saveProject();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Project
+                    </button>
+                </div>
+                <div class="panel-section">
+                    <h3>Organization</h3>
+                    <button class="panel-btn" onclick="window.app.showNewFolderDialog();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            <line x1="12" y1="11" x2="12" y2="17"></line>
+                            <line x1="9" y1="14" x2="15" y2="14"></line>
+                        </svg>
+                        Create New Folder
+                    </button>
+                </div>
+                <div class="panel-section danger">
+                    <h3>Danger Zone</h3>
+                    <button class="panel-btn danger" onclick="if(confirm('Are you sure you want to clear all data? This cannot be undone.')) window.app.clearAllData();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Tools Panel (Placeholder) -->
+    <div id="ai-panel" class="tab-panel" style="display: none;">
+        <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>AI Tools</h2>
+                <button class="panel-close" onclick="window.app.closeTabPanel()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="panel-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <h3>AI Tools Coming Soon</h3>
+                    <p>Features like summarization, semantic search, and insights will be available here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Panel (Placeholder) -->
+    <div id="help-panel" class="tab-panel" style="display: none;">
+        <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>Help</h2>
+                <button class="panel-close" onclick="window.app.closeTabPanel()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="panel-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <h3>Help & Documentation</h3>
+                    <p>User guides, keyboard shortcuts, and documentation will be available here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Options Panel (Placeholder) -->
+    <div id="options-panel" class="tab-panel" style="display: none;">
+        <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
+        <div class="panel-content">
+            <div class="panel-header">
+                <h2>Options</h2>
+                <button class="panel-close" onclick="window.app.closeTabPanel()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="panel-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <h3>Settings & Options</h3>
+                    <p>Language preferences, themes, and display settings will be available here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden file input for import -->
     <input type="file" id="importFileInput" accept=".json" hidden>
 
@@ -257,6 +436,45 @@
             <div class="modal-buttons">
                 <button class="modal-btn modal-btn-cancel" id="cancelNewFolder">Cancel</button>
                 <button class="modal-btn modal-btn-confirm" id="confirmNewFolder">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filter Dialog -->
+    <div id="dateFilterDialog" class="modal" style="display: none;">
+        <div class="modal-content" style="min-width: 420px;">
+            <h3>Filter by Date</h3>
+            <div class="filter-options">
+                <label class="filter-option-label">Filter Type:</label>
+                <div class="filter-type-options">
+                    <label class="radio-option">
+                        <input type="radio" name="filterType" value="createTime" checked>
+                        <span>Conversation Created Date</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="filterType" value="updateTime">
+                        <span>Last Updated Date</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="filterType" value="hasMessagesInRange">
+                        <span>Contains Messages in Range</span>
+                    </label>
+                </div>
+            </div>
+            <div class="date-range-inputs">
+                <div class="date-input-group">
+                    <label for="startDate">From:</label>
+                    <input type="date" id="startDate" class="date-input">
+                </div>
+                <div class="date-input-group">
+                    <label for="endDate">To:</label>
+                    <input type="date" id="endDate" class="date-input">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" id="cancelDateFilter">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="resetDateFilter">Reset</button>
+                <button class="modal-btn modal-btn-confirm primary" id="applyDateFilter">Apply Filter</button>
             </div>
         </div>
     </div>

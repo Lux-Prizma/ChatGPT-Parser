@@ -13,6 +13,14 @@ class ChatGPTParserApp {
         this.currentMatchIndex = -1; // Current highlighted match
         this.searchQuery = ''; // Current search query
 
+        // Date filter state
+        this.dateFilter = {
+            active: false,
+            type: 'createTime', // 'createTime', 'updateTime', 'hasMessagesInRange'
+            startDate: null,
+            endDate: null
+        };
+
         this.init();
     }
 
@@ -28,6 +36,14 @@ class ChatGPTParserApp {
     }
 
     bindEvents() {
+        // Top navigation tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                this.openTab(tabName, tab);
+            });
+        });
+
         // File upload
         document.getElementById('uploadBtn').addEventListener('click', () => {
             document.getElementById('fileInput').click();
@@ -47,10 +63,9 @@ class ChatGPTParserApp {
             this.updateConversationList();
         });
 
-        // Filter button (placeholder for now)
+        // Filter button
         document.getElementById('filterBtn').addEventListener('click', () => {
-            // TODO: Implement date filter dialog
-            alert('Date filter coming soon!');
+            this.showDateFilterDialog();
         });
 
         // Folder headers - collapsible folders
@@ -1300,6 +1315,175 @@ class ChatGPTParserApp {
         document.getElementById('confirmNewFolder').addEventListener('click', () => {
             this.createNewFolder();
         });
+
+        // Date filter dialog
+        document.getElementById('cancelDateFilter').addEventListener('click', () => {
+            this.hideDateFilterDialog();
+        });
+
+        document.getElementById('resetDateFilter').addEventListener('click', () => {
+            this.resetDateFilter();
+        });
+
+        document.getElementById('applyDateFilter').addEventListener('click', () => {
+            this.applyDateFilter();
+        });
+    }
+
+    // =========================================================================
+    // DATE FILTER METHODS
+    // =========================================================================
+
+    /**
+     * Show date filter dialog
+     */
+    showDateFilterDialog() {
+        const dialog = document.getElementById('dateFilterDialog');
+        dialog.style.display = 'flex';
+
+        // Set current filter type
+        const radioButtons = document.querySelectorAll('input[name="filterType"]');
+        radioButtons.forEach(radio => {
+            if (radio.value === this.dateFilter.type) {
+                radio.checked = true;
+            }
+        });
+
+        // Set current date values
+        if (this.dateFilter.startDate) {
+            document.getElementById('startDate').value = this.dateFilter.startDate;
+        }
+        if (this.dateFilter.endDate) {
+            document.getElementById('endDate').value = this.dateFilter.endDate;
+        }
+    }
+
+    /**
+     * Hide date filter dialog
+     */
+    hideDateFilterDialog() {
+        document.getElementById('dateFilterDialog').style.display = 'none';
+    }
+
+    /**
+     * Reset date filter
+     */
+    resetDateFilter() {
+        this.dateFilter = {
+            active: false,
+            type: 'createTime',
+            startDate: null,
+            endDate: null
+        };
+
+        // Clear inputs
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+
+        // Remove active state from button
+        document.getElementById('filterBtn').classList.remove('active');
+
+        // Update conversation list
+        this.updateConversationList();
+
+        this.hideDateFilterDialog();
+    }
+
+    /**
+     * Apply date filter
+     */
+    applyDateFilter() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const filterType = document.querySelector('input[name="filterType"]:checked').value;
+
+        // Validate dates
+        if (!startDate && !endDate) {
+            alert('Please select at least one date');
+            return;
+        }
+
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            alert('Start date must be before end date');
+            return;
+        }
+
+        // Set filter state
+        this.dateFilter = {
+            active: true,
+            type: filterType,
+            startDate: startDate || null,
+            endDate: endDate || null
+        };
+
+        // Add active state to button
+        document.getElementById('filterBtn').classList.add('active');
+
+        // Update conversation list
+        this.updateConversationList();
+
+        this.hideDateFilterDialog();
+    }
+
+    /**
+     * Check if conversation matches date filter
+     */
+    matchesDateFilter(conv) {
+        if (!this.dateFilter.active) {
+            return true;
+        }
+
+        const startTimestamp = this.dateFilter.startDate ?
+            new Date(this.dateFilter.startDate).getTime() / 1000 : 0;
+        const endTimestamp = this.dateFilter.endDate ?
+            new Date(this.dateFilter.endDate).getTime() / 1000 + 86400 : // End of day
+            Infinity;
+
+        switch (this.dateFilter.type) {
+            case 'createTime':
+                return conv.createTime >= startTimestamp && conv.createTime <= endTimestamp;
+
+            case 'updateTime':
+                return conv.updateTime >= startTimestamp && conv.updateTime <= endTimestamp;
+
+            case 'hasMessagesInRange':
+                // First check if conversation range overlaps with filter range
+                if (conv.updateTime < startTimestamp || conv.createTime > endTimestamp) {
+                    return false;
+                }
+
+                // Then check individual message timestamps
+                return this.hasMessagesInRange(conv, startTimestamp, endTimestamp);
+
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Check if conversation has messages within date range
+     */
+    hasMessagesInRange(conv, startTimestamp, endTimestamp) {
+        // Check timestamps in all pairs
+        for (const pair of conv.pairs) {
+            // Check question timestamp
+            if (pair.question.timestamp &&
+                pair.question.timestamp >= startTimestamp &&
+                pair.question.timestamp <= endTimestamp) {
+                return true;
+            }
+
+            // Check answer timestamps
+            for (const answer of pair.answers) {
+                if (answer.timestamp &&
+                    answer.timestamp >= startTimestamp &&
+                    answer.timestamp <= endTimestamp) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1387,10 +1571,15 @@ class ChatGPTParserApp {
         // Get all conversations
         let allConversations = this.data.conversations;
 
-        // Get starred conversations
+        // Apply date filter first
+        if (this.dateFilter.active) {
+            allConversations = allConversations.filter(conv => this.matchesDateFilter(conv));
+        }
+
+        // Get starred conversations from filtered list
         const starredConversations = allConversations.filter(conv => conv.starred);
 
-        // Get starred pairs
+        // Get starred pairs (from all conversations, not filtered)
         const allStarredPairs = this.data.getStarredPairs();
 
         // Apply search filter if active
@@ -1715,6 +1904,43 @@ class ChatGPTParserApp {
         }
 
         this.hideAllContextMenus();
+    }
+
+    // =========================================================================
+    // TOP NAVIGATION METHODS
+    // =========================================================================
+
+    /**
+     * Open a tab panel
+     */
+    openTab(tabName, tabElement) {
+        // Close any open panel first
+        this.closeTabPanel();
+
+        // Set active state on tab
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        if (tabElement) {
+            tabElement.classList.add('active');
+        }
+
+        // Show corresponding panel
+        const panel = document.getElementById(`${tabName}-panel`);
+        if (panel) {
+            panel.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Close the currently open tab panel
+     */
+    closeTabPanel() {
+        // Remove active state from all tabs
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+        // Hide all panels
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.style.display = 'none';
+        });
     }
 }
 

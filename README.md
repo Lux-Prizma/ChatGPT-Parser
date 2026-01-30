@@ -4,7 +4,7 @@ A local web application for viewing, organizing, and managing your LLM conversat
 
 This project is vibe coded and under construction. Iterating fast currently.
 
-Current version only support ChatGPT parsing.
+Current version support ChatGPT，Claude and DeepSeek conversations, as well as reading the parser's own file.
 
 ## ✨ Features
 
@@ -27,6 +27,15 @@ Current version only support ChatGPT parsing.
 - **IndexedDB storage** - Handle large datasets efficiently
 - **Export** your parsed data as JSON
 - **Persistent storage** - Data stays in your browser
+
+## ✨ Future features: to dos ✨
+
+- **Custom range export**
+- **More LLM conversation support**
+- **Better sort (By model type etc.)**
+- **LLM assisted search and analysis (including local LLM support)**
+- **Memory summarizing (for model transfering)**
+
 
 ## 🚀 Getting Started
 

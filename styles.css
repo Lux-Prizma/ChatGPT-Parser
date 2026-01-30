@@ -1157,11 +1157,60 @@ body {
 .message-text ol {
     margin: 16px 0; /* Increased from 14px */
     padding-left: 28px;
+    list-style: none; /* Remove default bullets */
+}
+
+.message-text ul {
+    padding-left: 20px;
 }
 
 .message-text li {
     margin-bottom: 8px; /* Increased from 6px */
     color: var(--text-primary); /* Explicit white color */
+    position: relative;
+    padding-left: 18px;
+}
+
+.message-text ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.message-text ol {
+    /* Hide default browser numbers since we use custom ones */
+    padding-left: 0;
+    list-style: none;
+}
+
+.message-text ol li {
+    padding-left: 0;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+/* Custom list number styling */
+.message-text ol li .list-number {
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Fix: prevent paragraphs inside list items from breaking */
+.message-text ol li p {
+    margin: 0;
+    display: inline;
+}
+
+.message-text blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 .message-text table {

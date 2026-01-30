@@ -702,7 +702,15 @@ class ChatGPTParserApp {
     }
 
     formatArtifactContent(type, content) {
-        // Escape HTML to prevent rendering
+        // Check if this is a markdown artifact
+        const isMarkdown = type.includes('markdown') || type.includes('md');
+
+        if (isMarkdown) {
+            // For markdown artifacts, format the markdown properly
+            return `<div class="message-text">${this.formatMessageContent(content)}</div>`;
+        }
+
+        // For code artifacts, escape HTML and wrap in code block
         const escapedContent = this.escapeHtml(content);
 
         // Determine language for syntax highlighting based on type
@@ -717,8 +725,6 @@ class ChatGPTParserApp {
             language = 'python';
         } else if (type.includes('css')) {
             language = 'css';
-        } else if (type.includes('markdown') || type.includes('md')) {
-            language = 'markdown';
         }
 
         // Format as code block with syntax highlighting class
@@ -1128,19 +1134,60 @@ class ChatGPTParserApp {
         // Format inline code
         formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-        // Format tables BEFORE other processing
-        formatted = formatted.replace(/^[ \t]*\|.*\|[ \t]*$/gm, (match) => {
-            const cells = match.split('|').filter(c => c.trim() !== '');
-            const cellTags = cells.map(cell => cell.trim().replace(/^:\-+:?$/, '---').includes('---')
-                ? `<th>${cell.trim()}</th>`
-                : `<td>${cell.trim()}</td>`).join('');
-            return `<tr>${cellTags}</tr>`;
-        });
+        // Format tables - simple and safe approach
+        // First, identify table blocks (consecutive lines with |)
+        const lines = formatted.split('\n');
+        let result = [];
+        let i = 0;
 
-        // Wrap table rows in table tags (this is simplified - proper table parsing is complex)
-        formatted = formatted.replace(/(<tr>.*<\/tr>\s*)+/g, '<table>$&</table>');
+        while (i < lines.length) {
+            const line = lines[i];
+            const isTableRow = line.trim().match(/^\|.*\|$/);
 
-        // Format headers (but not if they're indented with 4+ spaces)
+            if (isTableRow) {
+                // Start of table
+                let tableLines = [];
+                let separatorSeen = false;
+
+                // Collect all consecutive table rows
+                while (i < lines.length && lines[i].trim().match(/^\|.*\|$/)) {
+                    const row = lines[i].trim();
+                    // Check if this is a separator row
+                    if (row.includes('---')) {
+                        separatorSeen = true;
+                        i++; // Skip separator row
+                        continue;
+                    }
+                    tableLines.push(row);
+                    i++;
+                }
+
+                // Only process as table if we have a separator and data rows
+                if (separatorSeen && tableLines.length > 0) {
+                    // Build table HTML
+                    result.push('<table>');
+                    tableLines.forEach(rowLine => {
+                        const cells = rowLine.split('|').filter(c => c.trim() !== '');
+                        const cellTags = cells.map(cell => `<td>${cell.trim()}</td>`).join('');
+                        result.push(`<tr>${cellTags}</tr>`);
+                    });
+                    result.push('</table>');
+                } else {
+                    // Not a valid table, just output the lines
+                    result.push(...tableLines);
+                }
+            } else {
+                result.push(line);
+                i++;
+            }
+        }
+
+        formatted = result.join('\n');
+
+        // Format headers (h1-h6, but not if they're indented with 4+ spaces)
+        formatted = formatted.replace(/^(?! {4})###### (.*$)/gm, '<h6>$1</h6>');
+        formatted = formatted.replace(/^(?! {4})##### (.*$)/gm, '<h5>$1</h5>');
+        formatted = formatted.replace(/^(?! {4})#### (.*$)/gm, '<h4>$1</h4>');
         formatted = formatted.replace(/^(?! {4})### (.*$)/gm, '<h3>$1</h3>');
         formatted = formatted.replace(/^(?! {4})## (.*$)/gm, '<h2>$1</h2>');
         formatted = formatted.replace(/^(?! {4})# (.*$)/gm, '<h1>$1</h1>');
@@ -1151,69 +1198,122 @@ class ChatGPTParserApp {
         // Format italic
         formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-        // Format horizontal rules
-        formatted = formatted.replace(/^---$/gm, '<hr>');
+        // Format horizontal rules (must be on its own line, not part of a table or code)
+        formatted = formatted.replace(/^(?!.*\|)(?!.*<tr)(?!.*<pre)(?!.*<code)---$/gm, '<hr>');
 
-        // Format lists - simpler approach to avoid indentation issues
-        // Split by double newlines first to preserve list blocks
-        const blocks = formatted.split(/\n\n/);
+        // Format blockquotes - process before other markdown
+        // Handle both single and multi-line blockquotes
+        const blockquoteLines = formatted.split('\n');
+        let blockquoteResult = [];
+        let inBlockquote = false;
+        let blockquoteContent = [];
 
-        formatted = blocks.map(block => {
-            // Skip table blocks
-            if (block.includes('<table>')) return block;
+        for (let line of blockquoteLines) {
+            const isBlockquote = /^>\s+(.*)/.test(line);
 
-            const lines = block.split('\n');
-            let result = [];
-            let inList = false;
-            let listType = null; // 'ul' or 'ol'
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const isUlItem = /^[\-\*]\s/.test(line);
-                const isOlItem = /^\d+\.\s/.test(line);
-
-                if (isUlItem || isOlItem) {
-                    const currentListType = isUlItem ? 'ul' : 'ol';
-                    const itemContent = line.replace(/^[\-\*\d]+\.\s/, '');
-
-                    // Start new list if needed
-                    if (!inList || currentListType !== listType) {
-                        if (inList) result.push(`</${listType}>`);
-                        result.push(`<${currentListType}>`);
-                        listType = currentListType;
-                        inList = true;
-                    }
-
-                    result.push(`<li>${itemContent}</li>`);
-                } else {
-                    // Close list if we were in one
-                    if (inList) {
-                        result.push(`</${listType}>`);
-                        inList = false;
-                        listType = null;
-                    }
-                    result.push(line);
+            if (isBlockquote) {
+                const content = line.replace(/^>\s+/, '');
+                blockquoteContent.push(content);
+                inBlockquote = true;
+            } else {
+                if (inBlockquote) {
+                    blockquoteResult.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
+                    blockquoteContent = [];
+                    inBlockquote = false;
                 }
+                blockquoteResult.push(line);
             }
+        }
 
-            // Close list if still open at end
-            if (inList) {
-                result.push(`</${listType}>`);
+        // Close any open blockquote at the end
+        if (inBlockquote) {
+            blockquoteResult.push(`<blockquote>${blockquoteContent.join('<br>')}</blockquote>`);
+        }
+
+        formatted = blockquoteResult.join('\n');
+
+        // Format lists - process entire text at once, not in blocks
+        // This preserves list continuity across blank lines
+        const listLines = formatted.split('\n');
+        let listResult = [];
+        let listIdx = 0;
+
+        while (listIdx < listLines.length) {
+            const line = listLines[listIdx];
+            const isUlItem = /^[\-\*]\s+(.*)/.test(line);
+            const isOlItem = /^\d+\.\s+(.*)/.test(line);
+
+            if (isUlItem || isOlItem) {
+                const currentListType = isUlItem ? 'ul' : 'ol';
+                const listItems = [];
+
+                // Keep consuming list items (even with blank lines between them)
+                while (listIdx < listLines.length) {
+                    const listLine = listLines[listIdx];
+                    const isListItemUl = /^[\-\*]\s+(.*)/.test(listLine);
+                    const isListItemOl = /^\d+\.\s+(.*)/.exec(listLine);
+
+                    if (isListItemUl) {
+                        const itemContent = listLine.replace(/^[\-\*]\s+/, '');
+                        listItems.push(`<li>${itemContent}</li>`);
+                        listIdx++;
+                    } else if (isListItemOl) {
+                        // Preserve the original number from markdown
+                        const number = isListItemOl[1]; // Get the content after "N. "
+                        const marker = listLine.match(/^\d+\./)[0]; // Get just the "N." part
+                        listItems.push(`<li><span class="list-number">${marker}</span> ${number}</li>`);
+                        listIdx++;
+                    } else if (listLine.trim() === '') {
+                        // Blank line - continue, this is allowed in markdown lists
+                        listIdx++;
+                    } else {
+                        // Non-list, non-empty line - end of list
+                        break;
+                    }
+                }
+
+                // Join list items without newlines to prevent them being split into separate paragraphs
+                listResult.push(`<${currentListType}>${listItems.join('')}</${currentListType}>`);
+            } else {
+                listResult.push(line);
+                listIdx++;
             }
+        }
 
-            return result.join('\n');
-        }).join('\n\n');
+        formatted = listResult.join('\n\n');
 
         // Split into paragraphs (double line breaks)
+        // But don't split inside lists - split by \n\n and then recombine list parts
         let paragraphs = formatted.split(/\n\n/);
+        let processedParagraphs = [];
+        let paraIdx = 0;
 
-        // Process each paragraph
-        paragraphs = paragraphs.map(para => {
-            // Skip empty paragraphs
-            if (!para.trim()) return '';
+        while (paraIdx < paragraphs.length) {
+            const para = paragraphs[paraIdx];
 
-            // Skip if this is already HTML (lists, headers, code blocks, hr, tables)
-            if (para.match(/^(<[huol]|<pre|<li|<table)/)) {
+            // If this paragraph starts with an unclosed list tag, find the closing tag
+            if ((para.startsWith('<ul>') || para.startsWith('<ol>')) && !para.includes('</ul>') && !para.includes('</ol>')) {
+                // Combine paragraphs until we find the closing tag
+                let combined = para;
+                paraIdx++;
+                while (paraIdx < paragraphs.length && !combined.includes('</ul>') && !combined.includes('</ol>')) {
+                    combined += '\n\n' + paragraphs[paraIdx];
+                    paraIdx++;
+                }
+                processedParagraphs.push(combined);
+            } else if (!para.trim()) {
+                // Skip empty paragraphs
+                paraIdx++;
+            } else {
+                processedParagraphs.push(para);
+                paraIdx++;
+            }
+        }
+
+        // Now process each paragraph
+        paragraphs = processedParagraphs.map(para => {
+            // Skip if this is already HTML (lists, headers, code blocks, hr, tables, blockquotes)
+            if (para.match(/^(<[huol]|<pre|<li|<table|<blockquote)/)) {
                 return para;
             }
 

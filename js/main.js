@@ -10,6 +10,7 @@ import { DateFilter } from './features/DateFilter.js';
 import { FolderManager } from './features/FolderManager.js';
 import { ContextMenu } from './features/ContextMenu.js';
 import { ConversationList } from './features/ConversationList.js';
+import { MobileUI } from './features/MobileUI.js';
 
 class ChatGPTParserApp {
     constructor() {
@@ -29,6 +30,9 @@ class ChatGPTParserApp {
         this.dateFilter = new DateFilter(eventBus, this.data, () => this.updateConversationList());
         this.folderManager = new FolderManager(eventBus, this.data, () => this.updateConversationList());
 
+        // Mobile UI
+        this.mobileUI = new MobileUI(eventBus);
+
         this.init();
     }
 
@@ -41,6 +45,10 @@ class ChatGPTParserApp {
         await this.data.loadFromStorage();
         this.currentSort = this.data.currentSort || 'newestCreated';
         document.getElementById('sortSelect').value = this.currentSort;
+
+        // Setup mobile search toggle
+        this.mobileUI.setupSearchToggle();
+
         this.updateUI();
     }
 
@@ -146,6 +154,16 @@ class ChatGPTParserApp {
             }
         });
 
+        // Filter button
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            this.dateFilter.showDialog();
+        });
+
+        // New folder button
+        document.getElementById('newFolderBtn').addEventListener('click', () => {
+            this.folderManager.showNewFolderDialog();
+        });
+
         // Setup event bus listeners for inter-module communication
         this.setupEventBusListeners();
     }
@@ -245,8 +263,14 @@ class ChatGPTParserApp {
     }
 
     toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('open');
+        // Use MobileUI for proper mobile drawer handling
+        if (this.mobileUI) {
+            this.mobileUI.toggleDrawer();
+        } else {
+            // Fallback for non-mobile
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
     }
 
     toggleTitleEdit() {

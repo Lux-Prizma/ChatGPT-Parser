@@ -1,0 +1,599 @@
+/**
+ * Mobile Override CSS
+ * Mobile-specific styles and overrides for ChatBinder
+ */
+
+/* ========== MOBILE MENU BUTTON ========== */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.mobile-menu-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.mobile-menu-btn:active {
+    background-color: var(--bg-tertiary);
+}
+
+/* ========== SIDEBAR OVERLAY ========== */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ========== MOBILE SEARCH TOGGLE ========== */
+.thread-search-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.thread-search-toggle:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* ========== RESPONSIVE LAYOUTS ========== */
+@media (max-width: 768px) {
+    /* Show mobile menu button */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hide logo text on very small screens */
+    .nav-logo span {
+        display: none;
+    }
+
+    /* Adjust top nav padding */
+    .top-nav {
+        padding: 0 12px;
+    }
+
+    /* Nav tabs - reduce size */
+    .nav-tab {
+        padding: 6px 10px;
+        font-size: 13px;
+        gap: 6px;
+    }
+
+    .nav-tab span {
+        display: none;
+    }
+
+    .nav-tab svg {
+        display: flex;
+    }
+
+    /* Panel - full screen on mobile */
+    .panel-content {
+        width: 100%;
+        max-width: 100%;
+        border-left: none;
+    }
+
+    /* Modal - adjust for mobile */
+    .modal-content {
+        min-width: auto;
+        width: 90%;
+        max-width: 90%;
+        margin: 20px;
+    }
+
+    /* Date filter dialog */
+    .modal-content[style*="min-width: 420px"] {
+        min-width: 90% !important;
+        width: 90% !important;
+    }
+
+    /* Folder headers - improve touch targets */
+    .folder-header {
+        padding: 14px 12px;
+    }
+
+    /* Conversation items - better touch targets */
+    .conversation-item {
+        padding: 14px 12px;
+        min-height: 48px;
+    }
+
+    /* Sidebar footer buttons */
+    .footer-btn {
+        padding: 14px 12px;
+        min-height: 48px;
+    }
+
+    /* Show search toggle */
+    .thread-search-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Adjust thread search container for mobile */
+    .thread-search-container {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .thread-search {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    /* Question navigator - stack on very small screens */
+    .question-navigator {
+        flex-wrap: wrap;
+    }
+
+    .question-select {
+        flex: 1;
+        min-width: 120px;
+        max-width: none;
+    }
+
+    /* Upload state - adjust padding */
+    .upload-state {
+        padding: 20px 0;
+    }
+
+    .landing-title h1 {
+        font-size: 28px;
+    }
+
+    .landing-subtitle {
+        font-size: 16px;
+    }
+
+    .upload-box {
+        padding: 30px 20px;
+        margin: 0 10px;
+    }
+
+    .upload-box h2 {
+        font-size: 20px;
+    }
+
+    /* Chat header - adjust for mobile */
+    .chat-header {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .thread-title-input {
+        font-size: 16px;
+    }
+
+    .delete-thread-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    /* Delete thread button text - hide on very small screens */
+    .delete-thread-btn span {
+        display: none;
+    }
+
+    /* Context menus - position better on mobile */
+    .context-menu {
+        max-width: 200px;
+    }
+
+    /* Star icon size */
+    .star-icon {
+        padding: 4px;
+        min-width: 32px;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Buttons - improve touch targets */
+    button, .nav-tab, .panel-btn, .modal-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Input fields - ensure readable font size (no zoom on iOS) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* New folder dialog */
+    .preset-colors {
+        justify-content: center;
+    }
+
+    .color-option {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Sidebar controls - stack on mobile */
+    .sidebar-controls {
+        flex-wrap: wrap;
+    }
+
+    .sort-select {
+        min-width: 100%;
+    }
+
+    .filter-btn,
+    .new-folder-btn {
+        flex: 1;
+    }
+}
+
+/* ========== SMALL MOBILE PHONES ========== */
+@media (max-width: 480px) {
+    /* Nav tabs - further reduce */
+    .nav-tab {
+        padding: 6px 8px;
+    }
+
+    /* Chat header */
+    .thread-title-input {
+        font-size: 15px;
+        max-width: 150px;
+    }
+
+    /* Message containers - reduce padding */
+    .message {
+        padding: 20px 12px;
+    }
+
+    .message-content {
+        gap: 12px;
+    }
+
+    .message-index {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    /* User message bubbles - full width on small screens */
+    .message.user .message-body {
+        max-width: 85%;
+    }
+
+    /* Search nav controls - smaller */
+    .search-nav-btn,
+    .search-close-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .search-nav-btn svg,
+    .search-close-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Question navigator - stack vertically */
+    .question-navigator {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .question-select {
+        order: 1;
+        flex-basis: 100%;
+        margin-bottom: 8px;
+    }
+
+    .question-nav-btn {
+        order: 2;
+    }
+
+    /* Thinking sections */
+    .thinking-toggle {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    /* Message actions */
+    .message-actions {
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .model-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .message-action-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* ========== LANDSCAPE MOBILE ========== */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce vertical spacing in landscape */
+    .upload-state {
+        padding: 10px 0;
+    }
+
+    .landing-title {
+        margin-bottom: 5px;
+    }
+
+    .landing-title h1 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .landing-subtitle {
+        font-size: 14px;
+    }
+
+    .upload-box {
+        padding: 20px;
+    }
+
+    /* Chat header - compact */
+    .chat-header {
+        padding: 6px 10px;
+    }
+
+    /* Messages - compact */
+    .message {
+        padding: 15px 10px;
+    }
+
+    /* Thread search - compact */
+    .thread-search-container {
+        padding: 8px 10px;
+    }
+
+    /* Modal - adjust */
+    .modal-content {
+        margin: 10px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* ========== DYNAMIC VIEWPORT HEIGHT (Mobile browsers) ========== */
+@supports (height: 100dvh) {
+    body {
+        height: 100dvh;
+    }
+
+    .app-container {
+        height: calc(100dvh - var(--nav-height));
+    }
+
+    .sidebar {
+        height: 100dvh;
+    }
+
+    /* Modal - use dvh */
+    .modal {
+        height: 100dvh;
+    }
+
+    /* Tab panels - use dvh */
+    .tab-panel {
+        top: var(--nav-height);
+        height: calc(100dvh - var(--nav-height));
+    }
+}
+
+/* ========== TABLES - Mobile Responsive ========== */
+@media (max-width: 768px) {
+    .message-text table {
+        font-size: 14px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .message-text th,
+    .message-text td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .message-text table {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+}
+
+/* ========== CODE BLOCKS - Mobile Responsive ========== */
+@media (max-width: 768px) {
+    .message-text pre {
+        padding: 12px;
+        font-size: 13px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 6px;
+    }
+
+    .message-text code {
+        font-size: 13px;
+    }
+}
+
+/* ========== HEADINGS - Mobile Responsive ========== */
+@media (max-width: 768px) {
+    .message-text h1 {
+        font-size: 26px;
+        margin-top: 18px;
+        margin-bottom: 12px;
+    }
+
+    .message-text h2 {
+        font-size: 22px;
+        margin-top: 16px;
+        margin-bottom: 10px;
+    }
+
+    .message-text h3 {
+        font-size: 20px;
+        margin-top: 14px;
+        margin-bottom: 10px;
+    }
+
+    .message-text h4 {
+        font-size: 18px;
+        margin-top: 12px;
+        margin-bottom: 8px;
+    }
+
+    .message-text h5,
+    .message-text h6 {
+        font-size: 16px;
+        margin-top: 10px;
+        margin-bottom: 8px;
+    }
+}
+
+/* ========== LISTS - Mobile Responsive ========== */
+@media (max-width: 768px) {
+    .message-text ul,
+    .message-text ol {
+        margin: 12px 0;
+        padding-left: 24px;
+    }
+
+    .message-text li {
+        margin-bottom: 6px;
+    }
+}
+
+/* ========== TOUCH FEEDBACK ========== */
+@media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    .nav-tab:hover,
+    .conversation-item:hover,
+    .folder-header:hover,
+    .button:hover,
+    input:hover,
+    select:hover {
+        background-color: transparent;
+    }
+
+    /* Add active states for touch */
+    .nav-tab:active {
+        background-color: var(--hover-bg);
+        transform: scale(0.98);
+    }
+
+    .conversation-item:active {
+        background-color: var(--hover-bg);
+    }
+
+    .folder-header:active {
+        background-color: var(--hover-bg);
+    }
+}
+
+/* ========== PRINT STYLES - Include Mobile Considerations ========== */
+@media print {
+    .mobile-menu-btn,
+    .sidebar-overlay,
+    .sidebar-toggle,
+    .thread-search-toggle,
+    .top-nav,
+    .thread-search-container {
+        display: none !important;
+    }
+
+    .sidebar {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .message {
+        page-break-inside: avoid;
+    }
+
+    .pair-container {
+        page-break-inside: avoid;
+    }
+}
+
+/* ========== ACCESSIBILITY - Focus Visible ========== */
+@media (max-width: 768px) {
+    /* Ensure focus states are visible on mobile */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: 2px solid var(--btn-primary);
+        outline-offset: 2px;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .sidebar-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    }
+}
+
+/* ========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-overlay {
+        transition: opacity 0.1s ease, visibility 0.1s ease;
+    }
+
+    .sidebar {
+        transition: transform 0.1s ease;
+    }
+
+    .folder-arrow {
+        transition: transform 0.1s ease;
+    }
+}

@@ -31,6 +31,7 @@ Current version support ChatGPT，Claude and DeepSeek conversations, as well as 
 ## ✨ Future features: to dos ✨
 
 - **Metadata format optimizing <- next**
+- **Settings, localization and documentation in page**
 - **Custom range export**
 - **More LLM conversation support**
 - **Better sort (By model type etc.)**

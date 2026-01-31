@@ -1,4 +1,4 @@
-# ChatBinder - LLM conversation organizer
+# ChatBinder - AI chat organizer
 
 A local web application for viewing, organizing, and managing your LLM conversation history. Works entirely in your browser - no data leaves your device.
 

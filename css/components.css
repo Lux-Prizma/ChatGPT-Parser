@@ -775,6 +775,17 @@
     height: 16px;
 }
 
+/* ========== LANGUAGE OPTIONS ========== */
+.language-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.language-options .sort-select {
+    width: 100%;
+}
+
 /* ========== RESPONSIVE FOR COMPONENTS ========== */
 @media (max-width: 768px) {
     .thread-search-container {

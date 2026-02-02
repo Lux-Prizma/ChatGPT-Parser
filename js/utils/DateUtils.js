@@ -2,6 +2,8 @@
  * Date Utility Functions
  */
 
+import { t } from '../i18n/i18n.js';
+
 export class DateUtils {
     /**
      * Format date as relative time (Today, Yesterday, X days ago, etc.)
@@ -11,11 +13,11 @@ export class DateUtils {
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        if (diffDays === 0) return t('dates.today');
+        if (diffDays === 1) return t('dates.yesterday');
+        if (diffDays < 7) return t('dates.daysAgo', { count: diffDays });
+        if (diffDays < 30) return t('dates.weeksAgo', { count: Math.floor(diffDays / 7) });
+        if (diffDays < 365) return t('dates.monthsAgo', { count: Math.floor(diffDays / 30) });
         return date.toLocaleDateString();
     }
 

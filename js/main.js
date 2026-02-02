@@ -12,6 +12,13 @@ import { ContextMenu } from './features/ContextMenu.js';
 import { ConversationList } from './features/ConversationList.js';
 import { MobileUI } from './features/MobileUI.js';
 
+// i18n imports
+import { init, t, changeLanguage, getCurrentLanguage, getAvailableLanguages } from './i18n/i18n.js';
+import { updateStaticTranslations, initLanguageSwitcher, onLanguageChange } from './i18n/domUpdater.js';
+
+// Initialize i18n before app starts
+let i18nInitialized = false;
+
 class ChatGPTParserApp {
     constructor() {
         this.data = chatData;
@@ -19,6 +26,7 @@ class ChatGPTParserApp {
         this.searchResults = [];
         this.currentSort = 'newestCreated';
         this.highlightedPairId = null;
+        this.languageSelectListener = null; // Track language switcher listener
 
         // Initialize features
         this.messageRenderer = new MessageRenderer(eventBus, this.data);
@@ -42,6 +50,15 @@ class ChatGPTParserApp {
     }
 
     async initAsync() {
+        // Initialize i18n first
+        if (!i18nInitialized) {
+            await init();
+            i18nInitialized = true;
+            updateStaticTranslations();
+            this.setupLanguageSwitcher();
+            this.setupLanguageChangeHandler();
+        }
+
         await this.data.loadFromStorage();
         this.currentSort = this.data.currentSort || 'newestCreated';
         document.getElementById('sortSelect').value = this.currentSort;
@@ -50,6 +67,39 @@ class ChatGPTParserApp {
         this.mobileUI.setupSearchToggle();
 
         this.updateUI();
+    }
+
+    setupLanguageSwitcher() {
+        // Language switcher will be initialized when Options panel is opened
+        // This is handled in openTab method
+    }
+
+    setupLanguageChangeHandler() {
+        // Re-render UI when language changes
+        onLanguageChange(() => {
+            this.updateUI();
+            this.updateSortOptions();
+            this.updateDialogs();
+        });
+    }
+
+    updateSortOptions() {
+        // Update sort dropdown with translated options
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.innerHTML = `
+                <option value="newestCreated">${t('sort.newestCreated')}</option>
+                <option value="oldestCreated">${t('sort.oldestCreated')}</option>
+                <option value="recentlyUpdated">${t('sort.recentlyUpdated')}</option>
+                <option value="alphabetical">${t('sort.alphabetical')}</option>
+            `;
+            sortSelect.value = this.currentSort;
+        }
+    }
+
+    updateDialogs() {
+        // Update any open dialogs with new translations
+        // Dialog content will be updated when they're opened
     }
 
     bindEvents() {
@@ -149,7 +199,7 @@ class ChatGPTParserApp {
 
         // Clear data
         document.getElementById('clearDataBtn').addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+            if (confirm(t('alerts.clearDataConfirm'))) {
                 this.clearAllData();
             }
         });
@@ -182,9 +232,14 @@ class ChatGPTParserApp {
             await this.toggleStarConversation(data.id);
         });
 
+        // Folder toggle
+        eventBus.on('folder:toggle', (data) => {
+            this.toggleFolder(data.folderId);
+        });
+
         // Message actions
         eventBus.on('pair:delete', async (data) => {
-            if (this.data.currentConversationId && confirm('Delete this message pair? This cannot be undone.')) {
+            if (this.data.currentConversationId && confirm(t('alerts.deletePairConfirm'))) {
                 await this.data.deletePair(this.data.currentConversationId, data.pairId);
                 this.updateMainView();
             }
@@ -223,7 +278,7 @@ class ChatGPTParserApp {
                 allWarnings.push(...warnings);
             } catch (error) {
                 console.error('Error parsing file', file.name, ':', error);
-                alert(`Error parsing file: ${file.name}\n\n${error.message}`);
+                alert(t('alerts.parseError', { filename: file.name, message: error.message }));
             }
         }
 
@@ -241,11 +296,11 @@ class ChatGPTParserApp {
             } else {
                 // No duplicates, import all
                 await this.data.addConversations(totalConversations);
-                alert(`Successfully imported ${totalConversations.length} conversation(s)!`);
+                alert(t('alerts.importSuccess', { count: totalConversations.length }));
                 this.updateUI();
             }
         } else {
-            alert('No valid conversations found in the uploaded file(s).');
+            alert(t('alerts.noConversationsFound'));
         }
 
         document.getElementById('fileInput').value = '';
@@ -261,7 +316,10 @@ class ChatGPTParserApp {
         const radioButtons = document.querySelectorAll('input[name="duplicateAction"]');
 
         // Set summary
-        summary.textContent = `Found ${duplicates.length} duplicate(s) and ${newConvs.length} new conversation(s).`;
+        summary.textContent = t('dialogs.duplicate.summary', {
+            duplicates: duplicates.length,
+            new: newConvs.length
+        });
 
         // Build duplicate list
         list.innerHTML = '';
@@ -281,13 +339,13 @@ class ChatGPTParserApp {
                 <div class="duplicate-item-info">
                     <div class="duplicate-item-title">${HtmlUtils.escapeHtml(dup.old.title)}</div>
                     <div class="duplicate-item-meta">
-                        <span><span class="duplicate-badge old">EXISTING</span> ${oldDate} • ${oldPairCount} messages</span>
-                        <span><span class="duplicate-badge new">NEW</span> ${newDate} • ${newPairCount} messages</span>
+                        <span><span class="duplicate-badge old">${t('dialogs.duplicate.existing')}</span> ${oldDate} • ${t('dialogs.duplicate.messages', { count: oldPairCount })}</span>
+                        <span><span class="duplicate-badge new">${t('dialogs.duplicate.new')}</span> ${newDate} • ${t('dialogs.duplicate.messages', { count: newPairCount })}</span>
                     </div>
                 </div>
                 <div class="duplicate-item-choices">
-                    <button class="duplicate-choice-btn" data-action="keep" title="Keep existing">Keep Old</button>
-                    <button class="duplicate-choice-btn" data-action="overwrite" title="Replace with new">Use New</button>
+                    <button class="duplicate-choice-btn" data-action="keep" title="${t('dialogs.duplicate.keepOld')}">${t('dialogs.duplicate.keepOld')}</button>
+                    <button class="duplicate-choice-btn" data-action="overwrite" title="${t('dialogs.duplicate.useNew')}">${t('dialogs.duplicate.useNew')}</button>
                 </div>
             `;
 
@@ -351,12 +409,18 @@ class ChatGPTParserApp {
             if (selected === 'keepOld') {
                 // Import only new conversations
                 await this.data.addConversations(newConvs);
-                alert(`Imported ${newConvs.length} new conversation(s). Skipped ${duplicates.length} duplicate(s).`);
+                alert(t('dialogs.duplicate.importedNew', {
+                    count: newConvs.length,
+                    duplicates: duplicates.length
+                }));
             } else if (selected === 'overwrite') {
                 // Import all, overwriting duplicates
                 const overwriteIds = duplicates.map(d => d.id);
                 await this.data.addConversations([...newConvs, ...duplicates.map(d => d.new)], overwriteIds);
-                alert(`Imported ${totalCount} conversation(s). ${duplicates.length} duplicate(s) were replaced.`);
+                alert(t('dialogs.duplicate.importedAll', {
+                    total: totalCount,
+                    duplicates: duplicates.length
+                }));
             }
 
             dialog.style.display = 'none';
@@ -385,8 +449,11 @@ class ChatGPTParserApp {
 
             await this.data.addConversations([...newConvs, ...newToImport], overwriteIds);
 
-            alert(`Imported ${newConvs.length + newToImport.length} conversation(s). ` +
-                  `${keepCount} kept as-is, ${overwriteCount} replaced.`);
+            alert(t('dialogs.duplicate.importResult', {
+                imported: newConvs.length + newToImport.length,
+                kept: keepCount,
+                replaced: overwriteCount
+            }));
 
             dialog.style.display = 'none';
             this.updateUI();
@@ -449,7 +516,7 @@ class ChatGPTParserApp {
     async deleteCurrentThread() {
         if (!this.data.currentConversationId) return;
 
-        if (confirm('Are you sure you want to delete this entire conversation? This cannot be undone.')) {
+        if (confirm(t('alerts.deleteConversationConfirm'))) {
             await this.data.deleteConversation(this.data.currentConversationId);
             this.updateUI();
         }
@@ -621,6 +688,57 @@ class ChatGPTParserApp {
         if (panel) {
             panel.style.display = 'flex';
         }
+
+        // Initialize language switcher if Options panel is opened
+        if (tabName === 'options') {
+            this.initLanguageSwitcher();
+        }
+    }
+
+    initLanguageSwitcher() {
+        const languageSelect = document.getElementById('languageSelect');
+        if (!languageSelect) return;
+
+        // Get available languages from i18n
+        const availableLanguages = getAvailableLanguages();
+        const currentLanguage = getCurrentLanguage();
+
+        console.log('[i18n] Available languages for switcher:', availableLanguages);
+        console.log('[i18n] Current language:', currentLanguage);
+
+        // Clear existing options
+        languageSelect.innerHTML = '';
+
+        // Add only available languages
+        const languageNames = {
+            'en': 'English',
+            'zh': '中文'
+        };
+
+        availableLanguages.forEach(langCode => {
+            const option = document.createElement('option');
+            option.value = langCode;
+            option.textContent = languageNames[langCode] || langCode;
+            languageSelect.appendChild(option);
+        });
+
+        // Set current language
+        languageSelect.value = currentLanguage;
+
+        // Only add listener once - check if we already added it
+        if (!this.languageSelectListener) {
+            this.languageSelectListener = async (e) => {
+                const newLanguage = e.target.value;
+                console.log('[i18n] Changing language to:', newLanguage);
+                await changeLanguage(newLanguage);
+                // UI will update automatically via languageChange event
+            };
+        }
+
+        // Remove old listener if exists to prevent duplicates
+        languageSelect.removeEventListener('change', this.languageSelectListener);
+        // Add the listener
+        languageSelect.addEventListener('change', this.languageSelectListener);
     }
 
     closeTabPanel() {

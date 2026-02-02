@@ -1,0 +1,184 @@
+{
+  "app": {
+    "title": "ChatBinder - AI Chat Organizer",
+    "subtitle": "View, organize, and manage your AI chat history"
+  },
+  "nav": {
+    "manage": "Manage",
+    "aiTools": "AI Tools",
+    "help": "Help",
+    "options": "Options"
+  },
+  "sidebar": {
+    "importHistory": "Import Chat History",
+    "searchPlaceholder": "Search conversations...",
+    "starredThreads": "Starred Threads",
+    "starredPairs": "Starred Pairs",
+    "allConversations": "All Conversations",
+    "saveProject": "Save Project",
+    "clearData": "Clear Data",
+    "noConversations": "No conversations loaded",
+    "importHint": "Import your ChatGPT, Claude or other AI chat export to get started"
+  },
+  "sort": {
+    "newestCreated": "Newest (Created)",
+    "oldestCreated": "Oldest (Created)",
+    "recentlyUpdated": "Recently Updated",
+    "alphabetical": "Alphabetical (A-Z)"
+  },
+  "tooltips": {
+    "menu": "Menu",
+    "filterByDate": "Filter by date",
+    "newFolder": "New Folder",
+    "editTitle": "Edit title",
+    "deleteThread": "Delete entire thread",
+    "search": "Search",
+    "searchInConversation": "Search in conversation",
+    "previousMatch": "Previous match",
+    "nextMatch": "Next match",
+    "clearSearch": "Clear search",
+    "firstQuestion": "First question",
+    "previousQuestion": "Previous question",
+    "nextQuestion": "Next question",
+    "lastQuestion": "Last question"
+  },
+  "chatView": {
+    "newChat": "New Chat",
+    "delete": "Delete",
+    "searchPlaceholder": "Search in this conversation...",
+    "jumpToQuestion": "Jump to question...",
+    "noResponse": "No response"
+  },
+  "panel": {
+    "manageConversations": "Manage Conversations",
+    "aiTools": "AI Tools",
+    "help": "Help",
+    "options": "Options"
+  },
+  "panelSections": {
+    "importExport": "Import & Export",
+    "importConversations": "Import Conversations",
+    "saveProject": "Save Project",
+    "organization": "Organization",
+    "createNewFolder": "Create New Folder",
+    "dangerZone": "Danger Zone",
+    "clearAllData": "Clear All Data",
+    "language": "Language"
+  },
+  "panelContent": {
+    "aiToolsComingSoon": "AI Tools Coming Soon",
+    "aiToolsDescription": "Features like summarization, semantic search, and insights will be available here.",
+    "helpTitle": "Help & Documentation",
+    "helpDescription": "User guides, keyboard shortcuts, and documentation will be available here.",
+    "optionsTitle": "Settings & Options",
+    "optionsDescription": "Language preferences, themes, and display settings will be available here.",
+    "languageSelector": "Language:",
+    "selectLanguage": "Select Language"
+  },
+  "landing": {
+    "title": "ChatBinder - AI Chat Organizer",
+    "subtitle": "View, organize, and manage your AI chat history",
+    "importTitle": "Import Your Conversations",
+    "importDescription": "Upload your exported chat history in JSON format",
+    "chooseFiles": "Choose Files",
+    "importHint": "Supports ChatGPT, Claude, DeepSeek, and other LLM exports"
+  },
+  "dialogs": {
+    "newFolder": {
+      "title": "Create New Folder",
+      "folderName": "Folder name",
+      "color": "Color:",
+      "cancel": "Cancel",
+      "create": "Create"
+    },
+    "dateFilter": {
+      "title": "Filter by Date",
+      "filterType": "Filter Type:",
+      "conversationCreated": "Conversation Created Date",
+      "lastUpdated": "Last Updated Date",
+      "containsMessages": "Contains Messages in Range",
+      "from": "From:",
+      "to": "To:",
+      "cancel": "Cancel",
+      "reset": "Reset",
+      "applyFilter": "Apply Filter"
+    },
+    "duplicate": {
+      "title": "Duplicate Conversations Detected",
+      "summary": "Found {{duplicates}} duplicate(s) and {{new}} new conversation(s).",
+      "keepExisting": "Keep existing - Skip all duplicates",
+      "replaceAll": "Replace all - Overwrite all existing with new",
+      "chooseIndividual": "Choose individually - Decide for each duplicate",
+      "existing": "EXISTING",
+      "new": "NEW",
+      "messages": "{{count}} messages",
+      "keepOld": "Keep Old",
+      "useNew": "Use New",
+      "cancelImport": "Cancel Import",
+      "importNonDuplicates": "Import Non-Duplicates",
+      "applyChoices": "Apply Choices",
+      "importResult": "Imported {{imported}} conversation(s). {{kept}} kept as-is, {{replaced}} replaced.",
+      "importedNew": "Imported {{count}} new conversation(s). Skipped {{duplicates}} duplicate(s).",
+      "importedAll": "Imported {{total}} conversation(s). {{duplicates}} duplicate(s) were replaced."
+    }
+  },
+  "contextMenu": {
+    "moveTo": "Move to...",
+    "rename": "Rename",
+    "changeColor": "Change Color",
+    "delete": "Delete",
+    "allConversations": "All Conversations",
+    "enterNewFolderName": "Enter new folder name:",
+    "deleteFolderConfirm": "Delete this folder? Conversations will be moved to 'All Conversations'."
+  },
+  "colors": {
+    "red": "Red",
+    "orange": "Orange",
+    "yellow": "Yellow",
+    "green": "Green",
+    "blue": "Blue",
+    "purple": "Purple",
+    "pink": "Pink",
+    "gray": "Gray"
+  },
+  "alerts": {
+    "importSuccess_one": "Successfully imported {{count}} conversation!",
+    "importSuccess_other": "Successfully imported {{count}} conversations!",
+    "noConversationsFound": "No valid conversations found in the uploaded file(s).",
+    "clearDataConfirm": "Are you sure you want to clear all data? This cannot be undone.",
+    "deletePairConfirm": "Delete this message pair? This cannot be undone.",
+    "deleteConversationConfirm": "Are you sure you want to delete this entire conversation? This cannot be undone.",
+    "parseError": "Error parsing file: {{filename}}\n\n{{message}}"
+  },
+  "emptyStates": {
+    "noConversations": "No conversations",
+    "importToStart": "Import your ChatGPT export to get started",
+    "noStarredPairs": "No starred pairs yet",
+    "starPairsToSee": "Star pairs to see them here",
+    "noMessagesMatch": "No messages match your search",
+    "noMessagesInConversation": "No messages in this conversation"
+  },
+  "validation": {
+    "enterFolderName": "Please enter a folder name.",
+    "selectDateRange": "Please select at least a start date or end date."
+  },
+  "dates": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "weeksAgo_one": "{{count}} week ago",
+    "weeksAgo_other": "{{count}} weeks ago",
+    "monthsAgo_one": "{{count}} month ago",
+    "monthsAgo_other": "{{count}} months ago"
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

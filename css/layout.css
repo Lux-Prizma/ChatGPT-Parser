@@ -264,19 +264,36 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    flex-shrink: 0;
+    flex-basis: auto;
 }
 
 .footer-btn {
     width: 100%;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background-color: transparent;
     border: none;
     border-radius: 6px;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
     text-align: left;
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.footer-btn svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+}
+
+.footer-btn span {
+    line-height: 1;
 }
 
 .footer-btn:hover {

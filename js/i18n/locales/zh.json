@@ -1,0 +1,184 @@
+{
+  "app": {
+    "title": "ChatBinder - AI 聊天整理工具",
+    "subtitle": "查看、组织和管理您的 AI 聊天记录"
+  },
+  "nav": {
+    "manage": "管理",
+    "aiTools": "AI 工具",
+    "help": "帮助",
+    "options": "选项"
+  },
+  "sidebar": {
+    "importHistory": "导入聊天记录",
+    "searchPlaceholder": "搜索对话...",
+    "starredThreads": "星标对话",
+    "starredPairs": "星标问答",
+    "allConversations": "所有对话",
+    "saveProject": "保存项目",
+    "clearData": "清除数据",
+    "noConversations": "未加载对话",
+    "importHint": "导入您的 ChatGPT、Claude 或其他 AI 聊天导出文件以开始使用"
+  },
+  "sort": {
+    "newestCreated": "最新（创建时间）",
+    "oldestCreated": "最旧（创建时间）",
+    "recentlyUpdated": "最近更新",
+    "alphabetical": "字母顺序（A-Z）"
+  },
+  "tooltips": {
+    "menu": "菜单",
+    "filterByDate": "按日期筛选",
+    "newFolder": "新建文件夹",
+    "editTitle": "编辑标题",
+    "deleteThread": "删除整个对话",
+    "search": "搜索",
+    "searchInConversation": "在对话中搜索",
+    "previousMatch": "上一个匹配",
+    "nextMatch": "下一个匹配",
+    "clearSearch": "清除搜索",
+    "firstQuestion": "第一个问题",
+    "previousQuestion": "上一个问题",
+    "nextQuestion": "下一个问题",
+    "lastQuestion": "最后一个问题"
+  },
+  "chatView": {
+    "newChat": "新对话",
+    "delete": "删除",
+    "searchPlaceholder": "在此对话中搜索...",
+    "jumpToQuestion": "跳转到问题...",
+    "noResponse": "无回复"
+  },
+  "panel": {
+    "manageConversations": "管理对话",
+    "aiTools": "AI 工具",
+    "help": "帮助",
+    "options": "选项"
+  },
+  "panelSections": {
+    "importExport": "导入和导出",
+    "importConversations": "导入对话",
+    "saveProject": "保存项目",
+    "organization": "组织",
+    "createNewFolder": "创建新文件夹",
+    "dangerZone": "危险区域",
+    "clearAllData": "清除所有数据",
+    "language": "语言"
+  },
+  "panelContent": {
+    "aiToolsComingSoon": "AI 工具即将推出",
+    "aiToolsDescription": "摘要、语义搜索和洞察等功能将在此提供。",
+    "helpTitle": "帮助与文档",
+    "helpDescription": "用户指南、键盘快捷键和文档将在此提供。",
+    "optionsTitle": "设置与选项",
+    "optionsDescription": "语言偏好、主题和显示设置将在此提供。",
+    "languageSelector": "语言：",
+    "selectLanguage": "选择语言"
+  },
+  "landing": {
+    "title": "ChatBinder - AI 聊天整理工具",
+    "subtitle": "查看、组织和管理您的 AI 聊天记录",
+    "importTitle": "导入您的对话",
+    "importDescription": "上传您导出的 JSON 格式聊天记录",
+    "chooseFiles": "选择文件",
+    "importHint": "支持 ChatGPT、Claude、DeepSeek 和其他 LLM 导出文件"
+  },
+  "dialogs": {
+    "newFolder": {
+      "title": "创建新文件夹",
+      "folderName": "文件夹名称",
+      "color": "颜色：",
+      "cancel": "取消",
+      "create": "创建"
+    },
+    "dateFilter": {
+      "title": "按日期筛选",
+      "filterType": "筛选类型：",
+      "conversationCreated": "对话创建日期",
+      "lastUpdated": "最后更新日期",
+      "containsMessages": "包含范围内的消息",
+      "from": "从：",
+      "to": "到：",
+      "cancel": "取消",
+      "reset": "重置",
+      "applyFilter": "应用筛选"
+    },
+    "duplicate": {
+      "title": "检测到重复对话",
+      "summary": "发现 {{duplicates}} 个重复对话和 {{new}} 个新对话。",
+      "keepExisting": "保留现有 - 跳过所有重复",
+      "replaceAll": "全部替换 - 用新对话覆盖所有现有",
+      "chooseIndividual": "单独选择 - 为每个重复对话决定",
+      "existing": "现有",
+      "new": "新",
+      "messages": "{{count}} 条消息",
+      "keepOld": "保留旧版",
+      "useNew": "使用新版",
+      "cancelImport": "取消导入",
+      "importNonDuplicates": "导入非重复",
+      "applyChoices": "应用选择",
+      "importResult": "已导入 {{imported}} 个对话。{{kept}} 个保持不变，{{replaced}} 个被替换。",
+      "importedNew": "已导入 {{count}} 个新对话。跳过 {{duplicates}} 个重复。",
+      "importedAll": "已导入 {{total}} 个对话。{{duplicates}} 个重复已被替换。"
+    }
+  },
+  "contextMenu": {
+    "moveTo": "移动到...",
+    "rename": "重命名",
+    "changeColor": "更改颜色",
+    "delete": "删除",
+    "allConversations": "所有对话",
+    "enterNewFolderName": "输入新文件夹名称：",
+    "deleteFolderConfirm": "删除此文件夹？对话将被移至'所有对话'。"
+  },
+  "colors": {
+    "red": "红色",
+    "orange": "橙色",
+    "yellow": "黄色",
+    "green": "绿色",
+    "blue": "蓝色",
+    "purple": "紫色",
+    "pink": "粉色",
+    "gray": "灰色"
+  },
+  "alerts": {
+    "importSuccess_one": "成功导入 {{count}} 个对话！",
+    "importSuccess_other": "成功导入 {{count}} 个对话！",
+    "noConversationsFound": "上传的文件中未找到有效对话。",
+    "clearDataConfirm": "确定要清除所有数据吗？此操作无法撤销。",
+    "deletePairConfirm": "删除此问答对？此操作无法撤销。",
+    "deleteConversationConfirm": "确定要删除整个对话吗？此操作无法撤销。",
+    "parseError": "解析文件时出错：{{filename}}\\n\\n{{message}}"
+  },
+  "emptyStates": {
+    "noConversations": "无对话",
+    "importToStart": "导入您的 ChatGPT 导出文件以开始使用",
+    "noStarredPairs": "暂无星标问答",
+    "starPairsToSee": "星标问答将显示在此处",
+    "noMessagesMatch": "没有消息匹配您的搜索",
+    "noMessagesInConversation": "此对话中没有消息"
+  },
+  "validation": {
+    "enterFolderName": "请输入文件夹名称。",
+    "selectDateRange": "请至少选择开始日期或结束日期。"
+  },
+  "dates": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo_one": "{{count}} 天前",
+    "daysAgo_other": "{{count}} 天前",
+    "weeksAgo_one": "{{count}} 周前",
+    "weeksAgo_other": "{{count}} 周前",
+    "monthsAgo_one": "{{count}} 个月前",
+    "monthsAgo_other": "{{count}} 个月前"
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

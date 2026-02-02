@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatBinder</title>
+    <title data-i18n="app.title">ChatBinder</title>
     <!-- Modular CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -14,13 +14,15 @@
     <!-- KaTeX for equation rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <!-- i18next for internationalization (LOCAL - works offline) -->
+    <script src="js/vendor/i18next.min.js"></script>
 </head>
 <body>
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-left">
             <!-- Mobile Menu Button -->
-            <button class="mobile-menu-btn" id="mobileMenuBtn" title="Menu">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" data-i18n-title="tooltips.menu" title="Menu">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -31,7 +33,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <span>ChatBinder - AI Chat Organizer</span>
+                <span data-i18n="app.title">ChatBinder - AI Chat Organizer</span>
             </div>
         </div>
         <div class="nav-right">
@@ -40,13 +42,13 @@
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-                Manage
+                <span data-i18n="nav.manage">Manage</span>
             </button>
             <button class="nav-tab" data-tab="ai">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                 </svg>
-                AI Tools
+                <span data-i18n="nav.aiTools">AI Tools</span>
             </button>
             <button class="nav-tab" data-tab="help">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -54,14 +56,14 @@
                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                     <circle cx="12" cy="17" r="0.5" fill="currentColor"></circle>
                 </svg>
-                Help
+                <span data-i18n="nav.help">Help</span>
             </button>
             <button class="nav-tab" data-tab="options">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
-                Options
+                <span data-i18n="nav.options">Options</span>
             </button>
         </div>
     </nav>
@@ -78,7 +80,7 @@
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
-                    Import Chat History
+                    <span data-i18n="sidebar.importHistory">Import Chat History</span>
                 </button>
             </div>
 
@@ -88,18 +90,18 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" placeholder="Search conversations..." id="globalSearchInput">
+                <input type="text" id="globalSearchInput" data-i18n-placeholder="sidebar.searchPlaceholder" placeholder="Search conversations...">
             </div>
 
             <!-- Sort and Filter Controls -->
             <div class="sidebar-controls">
                 <select id="sortSelect" class="sort-select">
-                    <option value="newestCreated">Newest (Created)</option>
-                    <option value="oldestCreated">Oldest (Created)</option>
-                    <option value="recentlyUpdated">Recently Updated</option>
-                    <option value="alphabetical">Alphabetical (A-Z)</option>
+                    <option value="newestCreated" data-i18n="sort.newestCreated">Newest (Created)</option>
+                    <option value="oldestCreated" data-i18n="sort.oldestCreated">Oldest (Created)</option>
+                    <option value="recentlyUpdated" data-i18n="sort.recentlyUpdated">Recently Updated</option>
+                    <option value="alphabetical" data-i18n="sort.alphabetical">Alphabetical (A-Z)</option>
                 </select>
-                <button class="filter-btn" id="filterBtn" title="Filter by date">
+                <button class="filter-btn" id="filterBtn" data-i18n-title="tooltips.filterByDate" title="Filter by date">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -107,7 +109,7 @@
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
                 </button>
-                <button class="new-folder-btn" id="newFolderBtn" title="New Folder">
+                <button class="new-folder-btn" id="newFolderBtn" data-i18n-title="tooltips.newFolder" title="New Folder">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                         <line x1="12" y1="11" x2="12" y2="17"></line>
@@ -124,7 +126,7 @@
                         <svg class="folder-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
-                        <span class="folder-title">⭐ Starred Threads</span>
+                        <span class="folder-title" data-i18n="sidebar.starredThreads">⭐ Starred Threads</span>
                         <span class="folder-count">(0)</span>
                     </div>
                     <div class="folder-content collapsed" id="starredConversationsContent">
@@ -138,7 +140,7 @@
                         <svg class="folder-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
-                        <span class="folder-title">💎 Starred Pairs</span>
+                        <span class="folder-title" data-i18n="sidebar.starredPairs">💎 Starred Pairs</span>
                         <span class="folder-count">(0)</span>
                     </div>
                     <div class="folder-content collapsed" id="starredPairsContent">
@@ -154,13 +156,13 @@
                 <!-- All Conversations Folder (Always Expanded) -->
                 <div class="folder" id="allConversationsFolder">
                     <div class="folder-header folder-header-static">
-                        <span class="folder-title">All Conversations</span>
+                        <span class="folder-title" data-i18n="sidebar.allConversations">All Conversations</span>
                         <span class="folder-count">(0)</span>
                     </div>
                     <div class="folder-content" id="allConversationsContent">
                         <div class="empty-state" id="emptyState">
-                            <p>No conversations loaded</p>
-                            <small>Import your ChatGPT, Claude or other AI chat export to get started</small>
+                            <p data-i18n="sidebar.noConversations">No conversations loaded</p>
+                            <small data-i18n="sidebar.importHint">Import your ChatGPT, Claude or other AI chat export to get started</small>
                         </div>
                     </div>
                 </div>
@@ -168,8 +170,23 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer">
-                <button class="footer-btn" id="saveProjectBtn">💾 Save Project</button>
-                <button class="footer-btn" id="clearDataBtn">🗑️ Clear Data</button>
+                <button class="footer-btn" id="saveProjectBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span data-i18n="sidebar.saveProject">Save Project</span>
+                </button>
+                <button class="footer-btn" id="clearDataBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    <span data-i18n="sidebar.clearData">Clear Data</span>
+                </button>
             </div>
         </aside>
 
@@ -181,8 +198,8 @@
                     <div class="landing-container">
                         <!-- Title Section -->
                         <div class="landing-title">
-                            <h1>ChatBinder - AI Chat Organizer</h1>
-                            <p class="landing-subtitle">View, organize, and manage your AI chat history</p>
+                            <h1 data-i18n="landing.title">ChatBinder - AI Chat Organizer</h1>
+                            <p class="landing-subtitle" data-i18n="landing.subtitle">View, organize, and manage your AI chat history</p>
                         </div>
 
                         <!-- Upload Box -->
@@ -192,11 +209,11 @@
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <h2>Import Your Conversations</h2>
-                            <p>Upload your exported chat history in JSON format</p>
+                            <h2 data-i18n="landing.importTitle">Import Your Conversations</h2>
+                            <p data-i18n="landing.importDescription">Upload your exported chat history in JSON format</p>
                             <input type="file" id="fileInput" accept=".json,.html" multiple hidden>
-                            <button class="upload-btn" id="uploadBtn">Choose Files</button>
-                            <p class="upload-hint">Supports ChatGPT, Claude, DeepSeek, and other LLM exports</p>
+                            <button class="upload-btn" id="uploadBtn" data-i18n="landing.chooseFiles">Choose Files</button>
+                            <p class="upload-hint" data-i18n="landing.importHint">Supports ChatGPT, Claude, DeepSeek, and other LLM exports</p>
                         </div>
                     </div>
                 </div>
@@ -212,8 +229,8 @@
                             </svg>
                         </button>
                         <div class="chat-title">
-                            <input type="text" id="threadTitleInput" class="thread-title-input" value="New Chat">
-                            <button class="edit-title-btn" id="editTitleBtn" title="Edit title">
+                            <input type="text" id="threadTitleInput" class="thread-title-input" data-i18n-value="chatView.newChat" value="New Chat">
+                            <button class="edit-title-btn" id="editTitleBtn" data-i18n-title="tooltips.editTitle" title="Edit title">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -221,18 +238,18 @@
                             </button>
                         </div>
                         <div class="chat-header-actions">
-                            <button class="mobile-search-icon-btn" id="mobileSearchIconBtn" title="Search">
+                            <button class="mobile-search-icon-btn" id="mobileSearchIconBtn" data-i18n-title="tooltips.search" title="Search">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="11" cy="11" r="8"></circle>
                                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                 </svg>
                             </button>
-                            <button class="delete-thread-btn" id="deleteThreadBtn" title="Delete entire thread">
+                            <button class="delete-thread-btn" id="deleteThreadBtn" data-i18n-title="tooltips.deleteThread" title="Delete entire thread">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="3 6 5 6 21 6"></polyline>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                 </svg>
-                                <span>Delete</span>
+                                <span data-i18n="chatView.delete">Delete</span>
                             </button>
                         </div>
                     </div>
@@ -240,7 +257,7 @@
                     <!-- Thread Search -->
                     <div class="thread-search-container">
                         <!-- Mobile Search Toggle Button -->
-                        <button class="thread-search-toggle" id="threadSearchToggle" title="Search in conversation">
+                        <button class="thread-search-toggle" id="threadSearchToggle" data-i18n-title="tooltips.searchInConversation" title="Search in conversation">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -251,20 +268,20 @@
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <input type="text" placeholder="Search in this conversation..." id="threadSearchInput">
+                            <input type="text" id="threadSearchInput" data-i18n-placeholder="chatView.searchPlaceholder" placeholder="Search in this conversation...">
                             <div class="search-nav-controls" id="searchNavControls" style="display: none;">
                                 <span class="search-match-count" id="searchMatchCount">0/0</span>
-                                <button class="search-nav-btn" id="searchPrevBtn" title="Previous match">
+                                <button class="search-nav-btn" id="searchPrevBtn" data-i18n-title="tooltips.previousMatch" title="Previous match">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="15 18 9 12 15 6"></polyline>
                                     </svg>
                                 </button>
-                                <button class="search-nav-btn" id="searchNextBtn" title="Next match">
+                                <button class="search-nav-btn" id="searchNextBtn" data-i18n-title="tooltips.nextMatch" title="Next match">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="9 18 15 12 9 6"></polyline>
                                     </svg>
                                 </button>
-                                <button class="search-close-btn" id="searchCloseBtn" title="Clear search">
+                                <button class="search-close-btn" id="searchCloseBtn" data-i18n-title="tooltips.clearSearch" title="Clear search">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
                                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -278,25 +295,25 @@
                                 <path d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
                             <select id="questionSelect" class="question-select">
-                                <option value="">Jump to question...</option>
+                                <option value="" data-i18n="chatView.jumpToQuestion">Jump to question...</option>
                             </select>
-                            <button class="question-nav-btn" id="firstQuestionBtn" title="First question">
+                            <button class="question-nav-btn" id="firstQuestionBtn" data-i18n-title="tooltips.firstQuestion" title="First question">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="11 19 2 12 11 5"></polyline>
                                     <path d="M2 12h20"></path>
                                 </svg>
                             </button>
-                            <button class="question-nav-btn" id="prevQuestionBtn" title="Previous question">
+                            <button class="question-nav-btn" id="prevQuestionBtn" data-i18n-title="tooltips.previousQuestion" title="Previous question">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="15 18 9 12 15 6"></polyline>
                                 </svg>
                             </button>
-                            <button class="question-nav-btn" id="nextQuestionBtn" title="Next question">
+                            <button class="question-nav-btn" id="nextQuestionBtn" data-i18n-title="tooltips.nextQuestion" title="Next question">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="9 18 15 12 9 6"></polyline>
                                 </svg>
                             </button>
-                            <button class="question-nav-btn" id="lastQuestionBtn" title="Last question">
+                            <button class="question-nav-btn" id="lastQuestionBtn" data-i18n-title="tooltips.lastQuestion" title="Last question">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="13 19 22 12 13 5"></polyline>
                                     <path d="M22 12h-20"></path>
@@ -320,7 +337,7 @@
         <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
         <div class="panel-content">
             <div class="panel-header">
-                <h2>Manage Conversations</h2>
+                <h2 data-i18n="panel.manageConversations">Manage Conversations</h2>
                 <button class="panel-close" onclick="window.app.closeTabPanel()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -330,14 +347,14 @@
             </div>
             <div class="panel-body">
                 <div class="panel-section">
-                    <h3>Import & Export</h3>
+                    <h3 data-i18n="panelSections.importExport">Import & Export</h3>
                     <button class="panel-btn primary" onclick="document.getElementById('fileInput').click();">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
-                        Import Conversations
+                        <span data-i18n="panelSections.importConversations">Import Conversations</span>
                     </button>
                     <button class="panel-btn" onclick="window.app.saveProject();">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -345,28 +362,28 @@
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
                             <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
-                        Save Project
+                        <span data-i18n="panelSections.saveProject">Save Project</span>
                     </button>
                 </div>
                 <div class="panel-section">
-                    <h3>Organization</h3>
+                    <h3 data-i18n="panelSections.organization">Organization</h3>
                     <button class="panel-btn" onclick="window.app.showNewFolderDialog();">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                             <line x1="12" y1="11" x2="12" y2="17"></line>
                             <line x1="9" y1="14" x2="15" y2="14"></line>
                         </svg>
-                        Create New Folder
+                        <span data-i18n="panelSections.createNewFolder">Create New Folder</span>
                     </button>
                 </div>
                 <div class="panel-section danger">
-                    <h3>Danger Zone</h3>
+                    <h3 data-i18n="panelSections.dangerZone">Danger Zone</h3>
                     <button class="panel-btn danger" onclick="if(confirm('Are you sure you want to clear all data? This cannot be undone.')) window.app.clearAllData();">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
-                        Clear All Data
+                        <span data-i18n="panelSections.clearAllData">Clear All Data</span>
                     </button>
                 </div>
             </div>
@@ -378,7 +395,7 @@
         <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
         <div class="panel-content">
             <div class="panel-header">
-                <h2>AI Tools</h2>
+                <h2 data-i18n="panel.aiTools">AI Tools</h2>
                 <button class="panel-close" onclick="window.app.closeTabPanel()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -391,8 +408,8 @@
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                     </svg>
-                    <h3>AI Tools Coming Soon</h3>
-                    <p>Features like summarization, semantic search, and insights will be available here.</p>
+                    <h3 data-i18n="panelContent.aiToolsComingSoon">AI Tools Coming Soon</h3>
+                    <p data-i18n="panelContent.aiToolsDescription">Features like summarization, semantic search, and insights will be available here.</p>
                 </div>
             </div>
         </div>
@@ -403,7 +420,7 @@
         <div class="panel-overlay" onclick="window.app.closeTabPanel()"></div>
         <div class="panel-content">
             <div class="panel-header">
-                <h2>Help</h2>
+                <h2 data-i18n="panel.help">Help</h2>
                 <button class="panel-close" onclick="window.app.closeTabPanel()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -418,8 +435,8 @@
                         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                         <circle cx="12" cy="17" r="0.5" fill="currentColor"></circle>
                     </svg>
-                    <h3>Help & Documentation</h3>
-                    <p>User guides, keyboard shortcuts, and documentation will be available here.</p>
+                    <h3 data-i18n="panelContent.helpTitle">Help & Documentation</h3>
+                    <p data-i18n="panelContent.helpDescription">User guides, keyboard shortcuts, and documentation will be available here.</p>
                 </div>
             </div>
         </div>
@@ -439,13 +456,22 @@
                 </button>
             </div>
             <div class="panel-body">
+                <div class="panel-section">
+                    <h3 data-i18n="panelSections.language">Language</h3>
+                    <div class="language-options">
+                        <select id="languageSelect" class="sort-select">
+                            <option value="en">English</option>
+                            <option value="zh">中文</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="panel-placeholder">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
-                    <h3>Settings & Options</h3>
-                    <p>Language preferences, themes, and display settings will be available here.</p>
+                    <h3 data-i18n="panelContent.optionsTitle">Settings & Options</h3>
+                    <p data-i18n="panelContent.optionsDescription">Language preferences, themes, and display settings will be available here.</p>
                 </div>
             </div>
         </div>
@@ -455,17 +481,17 @@
     <input type="file" id="importFileInput" accept=".json" hidden>
 
     <div id="conversationContextMenu" class="context-menu" style="display: none;">
-        <div class="context-menu-item" data-action="move">Move to...</div>
+        <div class="context-menu-item" data-action="move" data-i18n="contextMenu.moveTo">Move to...</div>
     </div>
 
     <div id="folderContextMenu" class="context-menu" style="display: none;">
-        <div class="context-menu-item" data-action="rename">Rename</div>
-        <div class="context-menu-item" data-action="color">Change Color</div>
-        <div class="context-menu-item" data-action="delete">Delete</div>
+        <div class="context-menu-item" data-action="rename" data-i18n="contextMenu.rename">Rename</div>
+        <div class="context-menu-item" data-action="color" data-i18n="contextMenu.changeColor">Change Color</div>
+        <div class="context-menu-item" data-action="delete" data-i18n="contextMenu.delete">Delete</div>
     </div>
 
     <div id="moveToSubmenu" class="context-menu context-submenu" style="display: none;">
-        <div class="context-menu-item" data-folder="all">All Conversations</div>
+        <div class="context-menu-item" data-folder="all" data-i18n="contextMenu.allConversations">All Conversations</div>
         <!-- Custom folders will be added here dynamically -->
     </div>
 
@@ -476,10 +502,10 @@
     <!-- New Folder Dialog -->
     <div id="newFolderDialog" class="modal" style="display: none;">
         <div class="modal-content">
-            <h3>Create New Folder</h3>
-            <input type="text" id="newFolderName" placeholder="Folder name" maxlength="30">
+            <h3 data-i18n="dialogs.newFolder.title">Create New Folder</h3>
+            <input type="text" id="newFolderName" data-i18n-placeholder="dialogs.newFolder.folderName" placeholder="Folder name" maxlength="30">
             <div class="color-picker">
-                <span>Color:</span>
+                <span data-i18n="dialogs.newFolder.color">Color:</span>
                 <div class="preset-colors" id="presetColors">
                     <div class="color-option" data-color="#ef4444" style="background-color: #ef4444;"></div>
                     <div class="color-option" data-color="#f97316" style="background-color: #f97316;"></div>
@@ -492,8 +518,8 @@
                 </div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="cancelNewFolder">Cancel</button>
-                <button class="modal-btn modal-btn-confirm" id="confirmNewFolder">Create</button>
+                <button class="modal-btn modal-btn-cancel" id="cancelNewFolder" data-i18n="dialogs.newFolder.cancel">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmNewFolder" data-i18n="dialogs.newFolder.create">Create</button>
             </div>
         </div>
     </div>
@@ -501,38 +527,38 @@
     <!-- Date Filter Dialog -->
     <div id="dateFilterDialog" class="modal" style="display: none;">
         <div class="modal-content" style="min-width: 420px;">
-            <h3>Filter by Date</h3>
+            <h3 data-i18n="dialogs.dateFilter.title">Filter by Date</h3>
             <div class="filter-options">
-                <label class="filter-option-label">Filter Type:</label>
+                <label class="filter-option-label" data-i18n="dialogs.dateFilter.filterType">Filter Type:</label>
                 <div class="filter-type-options">
                     <label class="radio-option">
                         <input type="radio" name="filterType" value="createTime" checked>
-                        <span>Conversation Created Date</span>
+                        <span data-i18n="dialogs.dateFilter.conversationCreated">Conversation Created Date</span>
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="filterType" value="updateTime">
-                        <span>Last Updated Date</span>
+                        <span data-i18n="dialogs.dateFilter.lastUpdated">Last Updated Date</span>
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="filterType" value="hasMessagesInRange">
-                        <span>Contains Messages in Range</span>
+                        <span data-i18n="dialogs.dateFilter.containsMessages">Contains Messages in Range</span>
                     </label>
                 </div>
             </div>
             <div class="date-range-inputs">
                 <div class="date-input-group">
-                    <label for="startDate">From:</label>
+                    <label for="startDate" data-i18n="dialogs.dateFilter.from">From:</label>
                     <input type="date" id="startDate" class="date-input">
                 </div>
                 <div class="date-input-group">
-                    <label for="endDate">To:</label>
+                    <label for="endDate" data-i18n="dialogs.dateFilter.to">To:</label>
                     <input type="date" id="endDate" class="date-input">
                 </div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="cancelDateFilter">Cancel</button>
-                <button class="modal-btn modal-btn-confirm" id="resetDateFilter">Reset</button>
-                <button class="modal-btn modal-btn-confirm primary" id="applyDateFilter">Apply Filter</button>
+                <button class="modal-btn modal-btn-cancel" id="cancelDateFilter" data-i18n="dialogs.dateFilter.cancel">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="resetDateFilter" data-i18n="dialogs.dateFilter.reset">Reset</button>
+                <button class="modal-btn modal-btn-confirm primary" id="applyDateFilter" data-i18n="dialogs.dateFilter.applyFilter">Apply Filter</button>
             </div>
         </div>
     </div>
@@ -541,30 +567,30 @@
     <div id="duplicateDialog" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <h2>Duplicate Conversations Detected</h2>
+                <h2 data-i18n="dialogs.duplicate.title">Duplicate Conversations Detected</h2>
                 <p id="duplicateSummary">Some conversations already exist in your library.</p>
             </div>
             <div class="modal-body duplicate-dialog-body">
                 <div class="duplicate-global-actions">
                     <label class="radio-option">
                         <input type="radio" name="duplicateAction" value="keepOld" checked>
-                        <span><strong>Keep existing</strong> - Skip all duplicates</span>
+                        <span data-i18n="dialogs.duplicate.keepExisting"><strong>Keep existing</strong> - Skip all duplicates</span>
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="duplicateAction" value="overwrite">
-                        <span><strong>Replace all</strong> - Overwrite all existing with new</span>
+                        <span data-i18n="dialogs.duplicate.replaceAll"><strong>Replace all</strong> - Overwrite all existing with new</span>
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="duplicateAction" value="choose">
-                        <span><strong>Choose individually</strong> - Decide for each duplicate</span>
+                        <span data-i18n="dialogs.duplicate.chooseIndividual"><strong>Choose individually</strong> - Decide for each duplicate</span>
                     </label>
                 </div>
                 <div id="duplicateList" class="duplicate-list"></div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="cancelDuplicate">Cancel Import</button>
-                <button class="modal-btn modal-btn-confirm primary" id="confirmDuplicate">Import Non-Duplicates</button>
-                <button class="modal-btn modal-btn-confirm primary" id="applyDuplicateAction" style="display: none;">Apply Choices</button>
+                <button class="modal-btn modal-btn-cancel" id="cancelDuplicate" data-i18n="dialogs.duplicate.cancelImport">Cancel Import</button>
+                <button class="modal-btn modal-btn-confirm primary" id="confirmDuplicate" data-i18n="dialogs.duplicate.importNonDuplicates">Import Non-Duplicates</button>
+                <button class="modal-btn modal-btn-confirm primary" id="applyDuplicateAction" style="display: none;" data-i18n="dialogs.duplicate.applyChoices">Apply Choices</button>
             </div>
         </div>
     </div>

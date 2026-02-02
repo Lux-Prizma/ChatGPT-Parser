@@ -56,7 +56,7 @@ Current version support ChatGPT，Claude and DeepSeek conversations, as well as 
 5. Download the JSON file `conversations.json` 
 
 **From Gemini (partial support):**
-1. Go to [google takeout]([https://takeout.google.com/])
+1. Go to [Google Takeout](https://takeout.google.com/)
 2. Select "my activity" and deselect all of others (Gemini Gem not support yet)
 3. In **My Activity options** -> **Activity format**, choose JSON
 4. In "My Activity content options", deselect all and keep Gemini
@@ -153,8 +153,6 @@ This ensures accurate sorting even if you delete some message pairs.
 4. **Regular exports** - Periodically export your data as backup
 5. **Clear old data** - Use "Clear Data" to start fresh when needed
 
-## 🔄 Version History
-
 ### Current Version
 - Folder-based sidebar organization
 - Dual timestamp tracking (created/updated)
@@ -169,7 +167,7 @@ This project is open source and available for personal and educational use.
 
 ## 🤝 Contributing
 
-This is a personal project for managing LLM conversations. Feel free to fork and customize for your needs!
+This is a personal project for managing AI conversations. Feel free to fork and customize for your needs!
 
 ---
 

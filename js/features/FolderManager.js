@@ -32,11 +32,11 @@ export class FolderManager {
         document.getElementById('newFolderName').value = '';
         document.getElementById('newFolderName').focus();
 
-        // Reset color selection to default (purple)
+        // Reset color selection to default (gray)
         document.querySelectorAll('#presetColors .color-option').forEach(el => {
             el.classList.remove('selected');
         });
-        const defaultColor = document.querySelector('#presetColors .color-option[data-color="#8b5cf6"]');
+        const defaultColor = document.querySelector('#presetColors .color-option[data-color="#6b7280"]');
         if (defaultColor) {
             defaultColor.classList.add('selected');
         }
@@ -62,7 +62,7 @@ export class FolderManager {
         document.getElementById('newFolderName').value = '';
         // Reset color selection
         document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-        document.querySelector('.color-option[data-color="#8b5cf6"]').classList.add('selected');
+        document.querySelector('.color-option[data-color="#6b7280"]').classList.add('selected');
     }
 
     async createFolder() {
@@ -75,7 +75,7 @@ export class FolderManager {
         }
 
         const selectedColor = document.querySelector('.color-option.selected');
-        const color = selectedColor ? selectedColor.dataset.color : '#8b5cf6';
+        const color = selectedColor ? selectedColor.dataset.color : '#6b7280';
 
         await this.data.createFolder(name, color);
         this.hideDialog();

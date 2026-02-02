@@ -511,8 +511,7 @@ export class DocumentationRenderer {
             repositoryKey: 'docs.github.repository',
             starKey: 'docs.github.star',
             encouragementKey: 'docs.github.encouragement',
-            // PLACEHOLDER: Replace with your actual GitHub repository URL
-            githubUrl: 'https://github.com/YOUR_USERNAME/REPO_NAME'
+            githubUrl: 'https://github.com/Lux-Prizma/chat-binder'
         };
     }
 }

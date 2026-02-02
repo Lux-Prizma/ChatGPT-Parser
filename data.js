@@ -38,7 +38,7 @@ class ChatGPTData {
             this.folders.push({
                 id: 'folder_default',
                 name: 'My Folder',
-                color: '#3b82f6', // Blue
+                color: '#6b7280', // Gray
                 order: 0
             });
         }

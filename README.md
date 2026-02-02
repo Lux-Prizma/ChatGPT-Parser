@@ -30,10 +30,8 @@ Current version support ChatGPT，Claude and DeepSeek conversations, as well as 
 
 ## ✨ Future features: to dos ✨
 
-- **Metadata format optimizing <- next**
-- **Settings, localization and documentation in page**
 - **Custom range export**
-- **More LLM conversation support**
+- **More LLM conversation support** <- now partially support Gemini
 - **Better sort (By model type etc.)**
 - **LLM assisted search and analysis (including local LLM support)**
 - **Memory summarizing (for model transfering)**
